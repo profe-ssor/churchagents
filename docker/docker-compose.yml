@@ -1,0 +1,43 @@
+version: "3.9"
+
+services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    restart: unless-stopped
+
+  agents-worker:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    # Worker only — `agents-beat` runs Beat. Must consume `agents` (see scheduler/celery_app task_routes).
+    command:
+      [
+        "celery",
+        "-A",
+        "scheduler.celery_app",
+        "worker",
+        "--loglevel=info",
+        "--concurrency=4",
+        "-Q",
+        "agents,celery",
+      ]
+    env_file:
+      - .env.docker
+    depends_on:
+      - redis
+    restart: unless-stopped
+    volumes:
+      - ../data:/app/data    # persist ChromaDB
+
+  agents-beat:
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+    command: ["celery", "-A", "scheduler.celery_app", "beat", "--loglevel=info"]
+    env_file:
+      - .env.docker
+    depends_on:
+      - redis
+    restart: unless-stopped

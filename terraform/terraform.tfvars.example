@@ -1,0 +1,24 @@
+# Copy to terraform.tfvars (gitignored) and fill in.
+# az login && cd terraform && terraform init && terraform plan
+
+prefix          = "churchagents"
+location        = "eastus"
+django_base_url = "https://YOUR-RENDER-DJANGO.onrender.com"
+
+openai_api_key     = "sk-..."
+agent_jwt_email    = "service-user@yourdomain.com"
+agent_jwt_password = "your-secure-password"
+
+# Optional: default church UUID for platform admin (Django X-Church-ID / escalation email+alerts)
+# agent_jwt_church_id = "00000000-0000-0000-0000-000000000000"
+
+# Escalation email for agent tools (optional; leave empty to skip outbound mail)
+# support_team_email = "support@yourdomain.com"
+
+image_tag = "latest"
+
+# Optional tuning
+# celery_cpu    = 1.0
+# celery_memory = "2Gi"
+# redis_sku_name = "Basic"
+# redis_capacity = 0

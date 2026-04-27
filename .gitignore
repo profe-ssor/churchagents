@@ -1,0 +1,28 @@
+.env
+.env.docker
+**/.env.docker
+.claude/
+
+# Celery beat schedule (machine-local)
+celerybeat-schedule
+celerybeat-schedule.*
+
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+data/chroma/
+*.log
+.DS_Store
+dist/
+*.egg-info/
+
+# Terraform (state often contains secrets — never commit)
+*.tfstate
+*.tfstate.*
+terraform/.terraform/
+terraform/*.tfvars
+!terraform/terraform.tfvars.example
+terraform/crash.log
+terraform/override.tf
+terraform/*_override.tf

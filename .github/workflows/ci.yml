@@ -1,0 +1,56 @@
+name: Church Agents CI
+
+on:
+  push:
+    branches: [main, dev]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    services:
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install pytest pytest-asyncio ruff
+
+      - name: Lint with ruff
+        run: ruff check .
+
+      - name: Run tests (dry-run mode)
+        env:
+          DRY_RUN: "true"
+          OPENAI_API_KEY: "test-key"
+          DJANGO_BASE_URL: "http://localhost:8000"
+          AGENT_MEMORY_REDIS_URL: "redis://localhost:6379/2"
+          CELERY_BROKER_URL: "redis://localhost:6379/0"
+        run: pytest tests/ -v
+
+  deploy-prod:
+    needs: test
+    runs-on: ubuntu-latest
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    environment: production          # requires manual approval in GitHub
+
+    steps:
+      - uses: actions/checkout@v4
+      - name: Deploy to production server
+        run: |
+          echo "Add your SSH deploy command or docker push here"
+          # Example: ssh user@server "cd /app && git pull && docker compose up -d --build"

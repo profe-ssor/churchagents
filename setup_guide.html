@@ -1,0 +1,1156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Church Agents — Setup Guide: Models, MCP Server & Accounts</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21253a;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --green: #00d4aa;
+      --red: #ff6b6b;
+      --yellow: #ffd166;
+      --orange: #f4a261;
+      --blue: #4ecdc4;
+      --pink: #e76f51;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --radius: 14px;
+      --code-bg: #0d1117;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    /* HEADER */
+    .header {
+      text-align: center;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, #1a1d27, #21253a);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      margin-bottom: 3rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content:'';position:absolute;inset:0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(0,212,170,0.12) 0%, transparent 70%);
+    }
+    .header h1 {
+      font-size: 2rem; font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--green));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; position: relative;
+    }
+    .header p { color: var(--muted); margin-top: 0.5rem; position: relative; }
+    .badge-row { display:flex; justify-content:center; gap:.75rem; margin-top:1rem; flex-wrap:wrap; position:relative; }
+    .badge {
+      background: rgba(0,212,170,0.12); border: 1px solid rgba(0,212,170,0.35);
+      color: var(--green); font-size:.74rem; padding:.3rem .8rem;
+      border-radius:20px; font-weight:700; letter-spacing:.05em;
+    }
+
+    /* SECTION TITLE */
+    .section-title {
+      font-size: 1.25rem; font-weight: 700; color: #fff;
+      margin: 3rem 0 1.2rem;
+      display: flex; align-items: center; gap: .6rem;
+    }
+    .section-title::after { content:''; flex:1; height:1px; background:var(--border); }
+
+    /* STATUS LEGEND */
+    .legend {
+      display: flex; gap: 1.5rem; margin-bottom: 1.5rem; flex-wrap: wrap;
+    }
+    .legend-item { display:flex; align-items:center; gap:.5rem; font-size:.8rem; color:var(--muted); }
+    .dot { width:10px; height:10px; border-radius:50%; }
+    .dot-green { background:var(--green); }
+    .dot-red   { background:var(--red); }
+    .dot-yellow{ background:var(--yellow); }
+
+    /* ACCOUNT CARDS GRID */
+    .accounts-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+      gap: 1.2rem;
+    }
+    .account-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .account-header {
+      padding: 1rem 1.2rem;
+      display: flex; align-items: center; gap: .85rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .account-icon {
+      width: 42px; height: 42px; border-radius: 10px;
+      display:flex; align-items:center; justify-content:center;
+      font-size: 1.3rem; flex-shrink:0;
+    }
+    .account-header h3 { font-size:.95rem; font-weight:700; color:#fff; }
+    .account-header .sub { font-size:.75rem; color:var(--muted); margin-top:2px; }
+    .status-pill {
+      margin-left:auto; font-size:.68rem; font-weight:700;
+      padding:.25rem .65rem; border-radius:20px; letter-spacing:.04em; flex-shrink:0;
+    }
+    .pill-green  { background:rgba(0,212,170,0.15);  color:var(--green);  border:1px solid rgba(0,212,170,0.35); }
+    .pill-red    { background:rgba(255,107,107,0.15); color:var(--red);    border:1px solid rgba(255,107,107,0.35); }
+    .pill-yellow { background:rgba(255,209,102,0.15); color:var(--yellow); border:1px solid rgba(255,209,102,0.35); }
+
+    .account-body { padding: 1.2rem; }
+    .account-body p { font-size:.82rem; color:var(--muted); margin-bottom:1rem; line-height:1.7; }
+
+    .step-list { list-style:none; display:flex; flex-direction:column; gap:.45rem; }
+    .step-list li {
+      font-size:.78rem; display:flex; align-items:flex-start; gap:.6rem; color:#c8d0e7;
+    }
+    .step-num {
+      width:20px; height:20px; border-radius:50%; background:rgba(108,99,255,0.2);
+      border:1px solid rgba(108,99,255,0.4); color:#a78bfa;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.65rem; font-weight:700; flex-shrink:0; margin-top:1px;
+    }
+    .keys-list { list-style:none; display:flex; flex-direction:column; gap:.35rem; margin-top:.8rem; }
+    .keys-list li {
+      font-size:.75rem; display:flex; gap:.5rem; align-items:center;
+    }
+    .key-name {
+      font-family:'Courier New',monospace; font-size:.72rem;
+      background:rgba(108,99,255,0.1); border:1px solid rgba(108,99,255,0.25);
+      color:#a78bfa; padding:.15rem .5rem; border-radius:4px; flex-shrink:0;
+    }
+    .key-desc { color:var(--muted); font-size:.72rem; }
+    .key-exists {
+      background:rgba(0,212,170,0.08); border-color:rgba(0,212,170,0.25); color:var(--green);
+    }
+
+    /* CODE BLOCK */
+    .code-block {
+      background: var(--code-bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem 1.4rem;
+      font-family: 'Courier New', monospace;
+      font-size: .76rem;
+      color: #a8b2d8;
+      overflow-x: auto;
+      white-space: pre;
+      line-height: 1.7;
+      margin-bottom: 1rem;
+    }
+    .code-block .cm  { color: #636e8a; }
+    .code-block .kw  { color: #c678dd; }
+    .code-block .st  { color: #98c379; }
+    .code-block .cl  { color: #e5c07b; }
+    .code-block .fn  { color: #61afef; }
+    .code-block .num { color: #d19a66; }
+
+    /* MODEL SECTION */
+    .model-group {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .model-group-header {
+      padding: 1rem 1.4rem;
+      background: var(--surface2);
+      border-bottom: 1px solid var(--border);
+      display: flex; align-items:center; gap:.75rem;
+    }
+    .model-group-header h3 { font-size:.95rem; font-weight:700; color:#fff; }
+    .model-group-header .app-badge {
+      font-size:.7rem; font-family:'Courier New',monospace;
+      background:rgba(108,99,255,0.15); border:1px solid rgba(108,99,255,0.3);
+      color:#a78bfa; padding:.2rem .6rem; border-radius:5px;
+    }
+    .model-group-header .reason {
+      margin-left:auto; font-size:.74rem; color:var(--muted); font-style:italic;
+    }
+    .model-group-body { padding: 1.4rem; }
+
+    /* MCP TOOL TABLE */
+    .mcp-table { width:100%; border-collapse:collapse; margin-top:.8rem; }
+    .mcp-table th {
+      text-align:left; font-size:.72rem; text-transform:uppercase;
+      letter-spacing:.07em; color:var(--muted); padding:.5rem .8rem;
+      border-bottom:1px solid var(--border);
+    }
+    .mcp-table td {
+      padding:.55rem .8rem; font-size:.78rem; border-bottom:1px solid rgba(46,50,80,0.5);
+      vertical-align:top;
+    }
+    .mcp-table tr:last-child td { border-bottom:none; }
+    .mcp-table tr:hover td { background:rgba(255,255,255,0.02); }
+    .tool-name {
+      font-family:'Courier New',monospace; font-size:.71rem;
+      color:#a78bfa; white-space:nowrap;
+    }
+    .tool-method {
+      font-size:.66rem; font-weight:700; padding:.15rem .45rem;
+      border-radius:4px; white-space:nowrap; font-family:'Courier New',monospace;
+    }
+    .m-get  { background:rgba(0,212,170,0.12); color:var(--green);  border:1px solid rgba(0,212,170,0.3); }
+    .m-post { background:rgba(108,99,255,0.12); color:#a78bfa;      border:1px solid rgba(108,99,255,0.3); }
+    .m-put  { background:rgba(255,209,102,0.12);color:var(--yellow); border:1px solid rgba(255,209,102,0.3); }
+    .tool-desc { color:var(--muted); font-size:.76rem; }
+    .tool-agent { font-size:.66rem; color:var(--orange); font-style:italic; }
+
+    /* FLOW DIAGRAM */
+    .flow-box {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      overflow-x:auto;
+    }
+    .flow-box pre {
+      font-family:'Courier New',monospace; font-size:.8rem;
+      color:#8892b0; white-space:pre; line-height:1.6;
+    }
+
+    /* ENV FILE */
+    .env-section {
+      background:var(--code-bg);
+      border:1px solid var(--border);
+      border-radius:var(--radius);
+      padding:1.6rem;
+      overflow-x:auto;
+    }
+    .env-section pre {
+      font-family:'Courier New',monospace; font-size:.76rem;
+      white-space:pre; line-height:1.8;
+    }
+    .env-section .ec  { color:#636e8a; }
+    .env-section .ek  { color:#61afef; }
+    .env-section .ev  { color:#98c379; }
+    .env-section .eh  { color:var(--yellow); font-weight:700; }
+
+    /* CHECKLIST */
+    .checklist { display:flex; flex-direction:column; gap:.6rem; }
+    .check-item {
+      display:flex; align-items:flex-start; gap:.85rem;
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:10px; padding:.9rem 1.1rem;
+    }
+    .check-box {
+      width:22px; height:22px; border-radius:6px; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      font-size:.75rem; margin-top:1px;
+    }
+    .cb-done   { background:rgba(0,212,170,0.15);  color:var(--green);  border:1px solid rgba(0,212,170,0.4); }
+    .cb-todo   { background:rgba(255,107,107,0.12); color:var(--red);    border:1px solid rgba(255,107,107,0.3); }
+    .cb-warn   { background:rgba(255,209,102,0.12); color:var(--yellow); border:1px solid rgba(255,209,102,0.3); }
+    .check-text h4 { font-size:.85rem; font-weight:700; color:#fff; }
+    .check-text p  { font-size:.77rem; color:var(--muted); margin-top:2px; }
+
+    /* TABS */
+    .tab-group { margin-bottom:1.5rem; }
+    .tab-nav { display:flex; gap:.4rem; margin-bottom:1rem; flex-wrap:wrap; border-bottom:1px solid var(--border); padding-bottom:.75rem; }
+    .tnav-btn {
+      background:transparent; border:1px solid var(--border);
+      color:var(--muted); font-size:.75rem; font-weight:600;
+      padding:.35rem .9rem; border-radius:7px; cursor:pointer;
+      transition:all .15s; letter-spacing:.03em;
+    }
+    .tnav-btn.active, .tnav-btn:hover {
+      background:var(--accent); border-color:var(--accent); color:#fff;
+    }
+    .tnav-panel { display:none; }
+    .tnav-panel.active { display:block; }
+
+    footer {
+      text-align:center; color:var(--muted); font-size:.77rem;
+      margin-top:3rem; padding-top:1.5rem; border-top:1px solid var(--border);
+    }
+
+    @media(max-width:600px){
+      body{padding:1rem;}
+      .accounts-grid{grid-template-columns:1fr;}
+      .header h1{font-size:1.4rem;}
+    }
+  </style>
+</head>
+<body>
+
+<!-- HEADER -->
+<div class="header">
+  <h1>Church Agents — Setup Guide</h1>
+  <p>Everything you need to build: Models · MCP Server · Accounts · Environment Variables</p>
+  <div class="badge-row">
+    <span class="badge">Models to Build</span>
+    <span class="badge">MCP Server Tools</span>
+    <span class="badge">Accounts to Create</span>
+    <span class="badge">ENV Variables</span>
+    <span class="badge">Master Checklist</span>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 1 — ACCOUNTS TO CREATE
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">1️⃣ Accounts to Create &amp; API Keys Needed</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot dot-green"></div>Already in your system</div>
+  <div class="legend-item"><div class="dot dot-red"></div>Must create — agents won't work without it</div>
+  <div class="legend-item"><div class="dot dot-yellow"></div>Recommended — needed for full functionality</div>
+</div>
+
+<div class="accounts-grid">
+
+  <!-- OpenAI -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(16,163,127,0.15);">🤖</div>
+      <div>
+        <h3>OpenAI</h3>
+        <div class="sub">LLM brain for all 8 agents</div>
+      </div>
+      <span class="status-pill pill-red">MUST CREATE</span>
+    </div>
+    <div class="account-body">
+      <p>The core intelligence behind every agent. All reasoning, Q&amp;A, email drafting, document generation and decision-making runs through GPT-4.1.</p>
+      <ul class="step-list">
+        <li><span class="step-num">1</span>Go to <strong>platform.openai.com</strong> → Sign up / Log in</li>
+        <li><span class="step-num">2</span>Go to API Keys → Create new secret key</li>
+        <li><span class="step-num">3</span>Add billing — set a monthly spend limit (e.g. $20)</li>
+        <li><span class="step-num">4</span>Save key securely — it is shown only once</li>
+      </ul>
+      <ul class="keys-list" style="margin-top:1rem;">
+        <li><span class="key-name">OPENAI_API_KEY</span><span class="key-desc">sk-proj-... (primary agent key)</span></li>
+        <li><span class="key-name">OPENAI_MODEL</span><span class="key-desc">gpt-4.1 (or gpt-4.1-mini to save cost)</span></li>
+        <li><span class="key-name">OPENAI_ORG_ID</span><span class="key-desc">Optional — if using an org account</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- LangSmith -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(244,162,97,0.15);">🔭</div>
+      <div>
+        <h3>LangSmith</h3>
+        <div class="sub">Agent tracing, debugging &amp; monitoring</div>
+      </div>
+      <span class="status-pill pill-yellow">RECOMMENDED</span>
+    </div>
+    <div class="account-body">
+      <p>Traces every step each agent takes — what it reasoned, which tool it called, what it returned. Invaluable for debugging when agents do unexpected things.</p>
+      <ul class="step-list">
+        <li><span class="step-num">1</span>Go to <strong>smith.langchain.com</strong> → Sign up (free tier available)</li>
+        <li><span class="step-num">2</span>Create a new Project called <code>church-agents</code></li>
+        <li><span class="step-num">3</span>Settings → API Keys → Create key</li>
+      </ul>
+      <ul class="keys-list" style="margin-top:1rem;">
+        <li><span class="key-name">LANGCHAIN_TRACING_V2</span><span class="key-desc">true</span></li>
+        <li><span class="key-name">LANGCHAIN_API_KEY</span><span class="key-desc">ls__... your key</span></li>
+        <li><span class="key-name">LANGCHAIN_PROJECT</span><span class="key-desc">church-agents</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- ChromaDB / Pinecone -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(108,99,255,0.15);">🧩</div>
+      <div>
+        <h3>Pinecone <span style="color:var(--muted);font-weight:400;">or</span> ChromaDB</h3>
+        <div class="sub">Vector DB for admin Q&amp;A (RAG)</div>
+      </div>
+      <span class="status-pill pill-red">MUST CREATE</span>
+    </div>
+    <div class="account-body">
+      <p>Powers the OrchestratorAgent's ability to answer admin questions about church data. Stores embedded chunks of member records, treasury data, and announcements.</p>
+      <p style="color:var(--yellow);font-size:.78rem;"><strong>Recommended:</strong> Start with <strong>ChromaDB locally</strong> (free, no account needed), then upgrade to Pinecone for production.</p>
+      <ul class="step-list">
+        <li><span class="step-num">1</span><strong>Local (dev):</strong> pip install chromadb — no account needed</li>
+        <li><span class="step-num">2</span><strong>Production:</strong> Go to <strong>pinecone.io</strong> → Sign up (free starter)</li>
+        <li><span class="step-num">3</span>Create an index called <code>church-knowledge</code>, dimension 1536</li>
+        <li><span class="step-num">4</span>API Keys → copy your key</li>
+      </ul>
+      <ul class="keys-list" style="margin-top:1rem;">
+        <li><span class="key-name">PINECONE_API_KEY</span><span class="key-desc">Production vector store key</span></li>
+        <li><span class="key-name">PINECONE_INDEX_NAME</span><span class="key-desc">church-knowledge</span></li>
+        <li><span class="key-name">VECTOR_STORE_TYPE</span><span class="key-desc">chroma (dev) or pinecone (prod)</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Twilio -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(234,68,53,0.15);">📱</div>
+      <div>
+        <h3>Twilio</h3>
+        <div class="sub">SMS notifications from agents</div>
+      </div>
+      <span class="status-pill pill-green">ALREADY EXISTS</span>
+    </div>
+    <div class="account-body">
+      <p>Already configured in your Django system. Agents will use the existing Twilio integration via the notification API. No new account needed — just confirm keys are in .env.</p>
+      <ul class="keys-list">
+        <li><span class="key-name key-exists">TWILIO_ACCOUNT_SID</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">TWILIO_AUTH_TOKEN</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">TWILIO_PHONE_NUMBER</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">TWILIO_MESSAGING_SERVICE_SID</span><span class="key-desc">✓ Already in settings.py</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- mNotify -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(78,205,196,0.15);">📲</div>
+      <div>
+        <h3>mNotify</h3>
+        <div class="sub">Ghana SMS alternative to Twilio</div>
+      </div>
+      <span class="status-pill pill-green">ALREADY EXISTS</span>
+    </div>
+    <div class="account-body">
+      <p>Already configured in your Django system as a local SMS provider. Agents route through your existing /api/notifications/send-sms/ endpoint which handles Twilio vs mNotify routing automatically.</p>
+      <ul class="keys-list">
+        <li><span class="key-name key-exists">MNOTIFY_API_KEY</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">MNOTIFY_SENDER_ID</span><span class="key-desc">✓ Already in settings.py</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Paystack -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(0,212,170,0.15);">💳</div>
+      <div>
+        <h3>Paystack</h3>
+        <div class="sub">Subscription billing &amp; webhooks</div>
+      </div>
+      <span class="status-pill pill-yellow">VERIFY WEBHOOK</span>
+    </div>
+    <div class="account-body">
+      <p>Already configured for payments. However, the SubscriptionWatchdogAgent needs the <strong>Paystack webhook</strong> properly registered to receive real-time payment failure/success events.</p>
+      <ul class="step-list">
+        <li><span class="step-num">1</span>Log in to <strong>dashboard.paystack.com</strong></li>
+        <li><span class="step-num">2</span>Settings → API Keys &amp; Webhooks</li>
+        <li><span class="step-num">3</span>Set webhook URL to: <code>https://yourdomain.com/api/webhooks/paystack/</code></li>
+        <li><span class="step-num">4</span>Enable events: charge.success, charge.failed, subscription.disable</li>
+      </ul>
+      <ul class="keys-list" style="margin-top:.8rem;">
+        <li><span class="key-name key-exists">PAYSTACK_SECRET_KEY</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">PAYSTACK_PUBLIC_KEY</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name">PAYSTACK_WEBHOOK_SECRET</span><span class="key-desc">Add this for webhook signature verification</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Gmail / SMTP -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(255,107,107,0.15);">📧</div>
+      <div>
+        <h3>Gmail / SMTP</h3>
+        <div class="sub">All agent email delivery</div>
+      </div>
+      <span class="status-pill pill-green">ALREADY EXISTS</span>
+    </div>
+    <div class="account-body">
+      <p>Already configured using Gmail SMTP. Agents call your existing /api/notifications/send-email/ endpoint. If you need higher volume, consider upgrading to SendGrid or Mailgun.</p>
+      <ul class="keys-list">
+        <li><span class="key-name key-exists">EMAIL_HOST_USER</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">EMAIL_HOST_PASSWORD</span><span class="key-desc">✓ Already (Gmail App Password)</span></li>
+        <li><span class="key-name">SENDGRID_API_KEY</span><span class="key-desc">Optional — for high-volume email</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Cloudinary -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(108,99,255,0.15);">☁️</div>
+      <div>
+        <h3>Cloudinary</h3>
+        <div class="sub">PDF &amp; document storage for SecretariatAgent</div>
+      </div>
+      <span class="status-pill pill-green">ALREADY EXISTS</span>
+    </div>
+    <div class="account-body">
+      <p>Already configured. The SecretariatAgent will store generated PDFs (transfer letters, certificates) here. No new account needed.</p>
+      <ul class="keys-list">
+        <li><span class="key-name key-exists">CLOUDINARY_CLOUD_NAME</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">CLOUDINARY_API_KEY</span><span class="key-desc">✓ Already in settings.py</span></li>
+        <li><span class="key-name key-exists">CLOUDINARY_API_SECRET</span><span class="key-desc">✓ Already in settings.py</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Redis -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(231,111,81,0.15);">⚡</div>
+      <div>
+        <h3>Redis</h3>
+        <div class="sub">Agent memory &amp; Celery task broker</div>
+      </div>
+      <span class="status-pill pill-green">ALREADY EXISTS</span>
+    </div>
+    <div class="account-body">
+      <p>Already running in your system for Celery. Agents will also use Redis for short-term session memory (what the agent is currently working on) and caching agent responses.</p>
+      <ul class="keys-list">
+        <li><span class="key-name key-exists">CELERY_BROKER_URL</span><span class="key-desc">✓ redis://localhost:6379/0</span></li>
+        <li><span class="key-name">AGENT_MEMORY_REDIS_URL</span><span class="key-desc">redis://localhost:6379/2 (separate DB for agents)</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- GitHub -->
+  <div class="account-card">
+    <div class="account-header">
+      <div class="account-icon" style="background:rgba(168,218,220,0.15);">🐙</div>
+      <div>
+        <h3>GitHub</h3>
+        <div class="sub">Version control for agents codebase</div>
+      </div>
+      <span class="status-pill pill-yellow">RECOMMENDED</span>
+    </div>
+    <div class="account-body">
+      <p>Keep your agents code in a separate repository from the Django backend. This lets you deploy and update agents independently without touching production backend.</p>
+      <ul class="step-list">
+        <li><span class="step-num">1</span>Create repo: <code>church-management-agents</code></li>
+        <li><span class="step-num">2</span>Add .env to .gitignore — never commit API keys</li>
+        <li><span class="step-num">3</span>Create a <code>church-agent-bot</code> GitHub service user (optional)</li>
+      </ul>
+    </div>
+  </div>
+
+</div><!-- end accounts-grid -->
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 2 — MODELS TO BUILD
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">2️⃣ New Django Models to Build</div>
+<p style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem;">
+  These models don't exist yet in your backend. Each agent needs them to store state, logs,
+  and operational data. Add them to their respective Django apps.
+</p>
+
+<!-- GROUP A — new agents app -->
+<div class="model-group">
+  <div class="model-group-header">
+    <span class="app-badge">new app: agents/</span>
+    <h3>Agent Infrastructure Models</h3>
+    <span class="reason">Tracks every agent action, memory &amp; schedule</span>
+  </div>
+  <div class="model-group-body">
+    <div class="code-block"><span class="cm"># agents/models.py — Create a new Django app called "agents"</span>
+
+<span class="kw">class</span> <span class="cl">AgentLog</span>(models.Model):
+    <span class="cm">"""One record per agent action — what it did, result, errors"""</span>
+    agent_name   = models.CharField(max_length=<span class="num">100</span>)   <span class="cm"># e.g. "SubscriptionWatchdogAgent"</span>
+    church       = models.ForeignKey(Church, null=<span class="kw">True</span>, on_delete=models.SET_NULL)
+    action       = models.CharField(max_length=<span class="num">200</span>)   <span class="cm"># e.g. "send_renewal_reminder_email"</span>
+    input_data   = models.JSONField(default=dict)  <span class="cm"># what was passed in</span>
+    output_data  = models.JSONField(default=dict)  <span class="cm"># what the agent returned</span>
+    status       = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># SUCCESS | FAILED | SKIPPED</span>
+    error        = models.TextField(blank=<span class="kw">True</span>)
+    duration_ms  = models.IntegerField(default=<span class="num">0</span>)
+    triggered_by = models.CharField(max_length=<span class="num">50</span>)   <span class="cm"># SCHEDULED | WEBHOOK | ON_DEMAND</span>
+    created_at   = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">AgentTask</span>(models.Model):
+    <span class="cm">"""A task assigned to an agent — tracks status from start to finish"""</span>
+    task_id      = models.UUIDField(default=uuid.uuid4, unique=<span class="kw">True</span>)
+    agent_name   = models.CharField(max_length=<span class="num">100</span>)
+    church       = models.ForeignKey(Church, null=<span class="kw">True</span>, on_delete=models.SET_NULL)
+    title        = models.CharField(max_length=<span class="num">300</span>)
+    description  = models.TextField(blank=<span class="kw">True</span>)
+    status       = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># PENDING | RUNNING | DONE | FAILED</span>
+    priority     = models.CharField(max_length=<span class="num">10</span>, default=<span class="st">'MEDIUM'</span>)
+    result       = models.JSONField(default=dict)
+    created_by   = models.CharField(max_length=<span class="num">50</span>)   <span class="cm"># admin email or "celery-beat"</span>
+    started_at   = models.DateTimeField(null=<span class="kw">True</span>)
+    completed_at = models.DateTimeField(null=<span class="kw">True</span>)
+    created_at   = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">AgentMemory</span>(models.Model):
+    <span class="cm">"""Stores conversation context for admin Q&amp;A sessions"""</span>
+    session_id   = models.CharField(max_length=<span class="num">100</span>, db_index=<span class="kw">True</span>)
+    agent_name   = models.CharField(max_length=<span class="num">100</span>)
+    church       = models.ForeignKey(Church, null=<span class="kw">True</span>, on_delete=models.SET_NULL)
+    role         = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># user | assistant</span>
+    content      = models.TextField()
+    created_at   = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+    <span class="kw">class</span> <span class="cl">Meta</span>:
+        ordering = [<span class="st">'created_at'</span>]
+
+<span class="kw">class</span> <span class="cl">AgentAlert</span>(models.Model):
+    <span class="cm">"""Every alert/notification sent by any agent"""</span>
+    agent_name   = models.CharField(max_length=<span class="num">100</span>)
+    church       = models.ForeignKey(Church, null=<span class="kw">True</span>, on_delete=models.SET_NULL)
+    alert_type   = models.CharField(max_length=<span class="num">50</span>)   <span class="cm"># EXPIRY | BUDGET | SECURITY | etc.</span>
+    channel      = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># EMAIL | SMS | IN_APP</span>
+    recipient    = models.CharField(max_length=<span class="num">200</span>)  <span class="cm"># email address or phone</span>
+    subject      = models.CharField(max_length=<span class="num">300</span>)
+    body         = models.TextField()
+    status       = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># SENT | FAILED | SKIPPED</span>
+    sent_at      = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">AgentSchedule</span>(models.Model):
+    <span class="cm">"""Override or configure each agent's schedule per deployment"""</span>
+    agent_name   = models.CharField(max_length=<span class="num">100</span>, unique=<span class="kw">True</span>)
+    is_enabled   = models.BooleanField(default=<span class="kw">True</span>)
+    cron_expr    = models.CharField(max_length=<span class="num">100</span>)   <span class="cm"># e.g. "0 7 * * *"</span>
+    last_run     = models.DateTimeField(null=<span class="kw">True</span>)
+    next_run     = models.DateTimeField(null=<span class="kw">True</span>)
+    last_status  = models.CharField(max_length=<span class="num">20</span>, blank=<span class="kw">True</span>)
+    updated_at   = models.DateTimeField(auto_now=<span class="kw">True</span>)
+</div>
+  </div>
+</div>
+
+<!-- GROUP B — secretariat -->
+<div class="model-group">
+  <div class="model-group-header">
+    <span class="app-badge">secretariat/</span>
+    <h3>Secretariat Models</h3>
+    <span class="reason">Currently empty — needs full implementation for SecretariatAgent</span>
+  </div>
+  <div class="model-group-body">
+    <div class="code-block"><span class="cm"># secretariat/models.py</span>
+
+<span class="kw">class</span> <span class="cl">MeetingMinutes</span>(models.Model):
+    church        = models.ForeignKey(Church, on_delete=models.CASCADE)
+    meeting_type  = models.CharField(max_length=<span class="num">50</span>)  <span class="cm"># ELDER_BOARD | CHURCH_BOARD | COMMITTEE</span>
+    date          = models.DateField()
+    attendees     = models.ManyToManyField(<span class="st">'members.Member'</span>, blank=<span class="kw">True</span>)
+    agenda        = models.TextField(blank=<span class="kw">True</span>)
+    summary       = models.TextField()
+    decisions     = models.TextField()
+    document      = models.FileField(upload_to=<span class="st">'secretariat/minutes/'</span>, blank=<span class="kw">True</span>)
+    recorded_by   = models.ForeignKey(<span class="st">'accounts.User'</span>, on_delete=models.SET_NULL, null=<span class="kw">True</span>)
+    created_at    = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">DocumentRequest</span>(models.Model):
+    DOC_TYPES = [(<span class="st">'TRANSFER'</span>,<span class="st">'Transfer Letter'</span>),(<span class="st">'CERTIFICATE'</span>,<span class="st">'Membership Certificate'</span>),
+                 (<span class="st">'RECOMMENDATION'</span>,<span class="st">'Recommendation Letter'</span>),(<span class="st">'BAPTISM'</span>,<span class="st">'Baptism Certificate'</span>),
+                 (<span class="st">'MARRIAGE'</span>,<span class="st">'Marriage Record'</span>),(<span class="st">'MINUTES'</span>,<span class="st">'Meeting Minutes PDF'</span>)]
+    STATUS     = [(<span class="st">'PENDING'</span>,<span class="st">'Pending'</span>),(<span class="st">'IN_PROGRESS'</span>,<span class="st">'In Progress'</span>),(<span class="st">'COMPLETED'</span>,<span class="st">'Completed'</span>)]
+
+    church       = models.ForeignKey(Church, on_delete=models.CASCADE)
+    member       = models.ForeignKey(<span class="st">'members.Member'</span>, on_delete=models.CASCADE)
+    doc_type     = models.CharField(max_length=<span class="num">20</span>, choices=DOC_TYPES)
+    purpose      = models.CharField(max_length=<span class="num">300</span>, blank=<span class="kw">True</span>)  <span class="cm"># e.g. "For school admission"</span>
+    status       = models.CharField(max_length=<span class="num">15</span>, choices=STATUS, default=<span class="st">'PENDING'</span>)
+    requested_by = models.ForeignKey(<span class="st">'accounts.User'</span>, on_delete=models.SET_NULL, null=<span class="kw">True</span>)
+    document     = models.FileField(upload_to=<span class="st">'secretariat/docs/'</span>, blank=<span class="kw">True</span>)
+    generated_at = models.DateTimeField(null=<span class="kw">True</span>)
+    created_at   = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">BaptismRecord</span>(models.Model):
+    church      = models.ForeignKey(Church, on_delete=models.CASCADE)
+    member      = models.OneToOneField(<span class="st">'members.Member'</span>, on_delete=models.CASCADE)
+    date        = models.DateField()
+    officiant   = models.CharField(max_length=<span class="num">200</span>)
+    location    = models.CharField(max_length=<span class="num">300</span>, blank=<span class="kw">True</span>)
+    notes       = models.TextField(blank=<span class="kw">True</span>)
+    certificate = models.FileField(upload_to=<span class="st">'secretariat/baptism/'</span>, blank=<span class="kw">True</span>)
+    created_at  = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">MarriageRecord</span>(models.Model):
+    church      = models.ForeignKey(Church, on_delete=models.CASCADE)
+    spouse_1    = models.ForeignKey(<span class="st">'members.Member'</span>, related_name=<span class="st">'marriages_as_spouse1'</span>, on_delete=models.CASCADE)
+    spouse_2    = models.ForeignKey(<span class="st">'members.Member'</span>, related_name=<span class="st">'marriages_as_spouse2'</span>, on_delete=models.CASCADE)
+    date        = models.DateField()
+    officiant   = models.CharField(max_length=<span class="num">200</span>)
+    location    = models.CharField(max_length=<span class="num">300</span>, blank=<span class="kw">True</span>)
+    certificate = models.FileField(upload_to=<span class="st">'secretariat/marriage/'</span>, blank=<span class="kw">True</span>)
+    created_at  = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+
+<span class="kw">class</span> <span class="cl">TransferLetter</span>(models.Model):
+    church           = models.ForeignKey(Church, on_delete=models.CASCADE)
+    member           = models.ForeignKey(<span class="st">'members.Member'</span>, on_delete=models.CASCADE)
+    destination_name = models.CharField(max_length=<span class="num">300</span>)  <span class="cm"># Name of destination church</span>
+    date_issued      = models.DateField(auto_now_add=<span class="kw">True</span>)
+    issued_by        = models.ForeignKey(<span class="st">'accounts.User'</span>, on_delete=models.SET_NULL, null=<span class="kw">True</span>)
+    document         = models.FileField(upload_to=<span class="st">'secretariat/transfers/'</span>, blank=<span class="kw">True</span>)
+    delivered        = models.BooleanField(default=<span class="kw">False</span>)
+
+<span class="kw">class</span> <span class="cl">CorrespondenceLog</span>(models.Model):
+    church        = models.ForeignKey(Church, on_delete=models.CASCADE)
+    corr_type     = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># INCOMING | OUTGOING</span>
+    sender        = models.CharField(max_length=<span class="num">300</span>)
+    recipient     = models.CharField(max_length=<span class="num">300</span>)
+    subject       = models.CharField(max_length=<span class="num">400</span>)
+    date          = models.DateField()
+    reference_no  = models.CharField(max_length=<span class="num">100</span>, unique=<span class="kw">True</span>)
+    document      = models.FileField(upload_to=<span class="st">'secretariat/correspondence/'</span>, blank=<span class="kw">True</span>)
+    created_at    = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+</div>
+  </div>
+</div>
+
+<!-- GROUP C — accounts: subscription watchdog -->
+<div class="model-group">
+  <div class="model-group-header">
+    <span class="app-badge">accounts/</span>
+    <h3>Subscription Alert Log</h3>
+    <span class="reason">Prevents SubscriptionWatchdogAgent from sending duplicate reminder emails</span>
+  </div>
+  <div class="model-group-body">
+    <div class="code-block"><span class="cm"># Add to accounts/models.py</span>
+
+<span class="kw">class</span> <span class="cl">SubscriptionAlert</span>(models.Model):
+    <span class="cm">"""Tracks which expiry alerts have already been sent — prevents duplicates"""</span>
+    church       = models.ForeignKey(Church, on_delete=models.CASCADE)
+    alert_type   = models.CharField(max_length=<span class="num">20</span>)   <span class="cm"># D7 | D3 | D1 | D0 | PAYMENT_FAIL</span>
+    sent_at      = models.DateTimeField(auto_now_add=<span class="kw">True</span>)
+    channel      = models.CharField(max_length=<span class="num">10</span>)   <span class="cm"># EMAIL | SMS</span>
+    acknowledged = models.BooleanField(default=<span class="kw">False</span>)
+
+    <span class="kw">class</span> <span class="cl">Meta</span>:
+        unique_together = [<span class="st">'church'</span>, <span class="st">'alert_type'</span>]   <span class="cm"># one D7 email per church per cycle</span>
+</div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 3 — MCP SERVER
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">3️⃣ MCP Server — Tool Definitions</div>
+<p style="color:var(--muted);font-size:.85rem;margin-bottom:1.5rem;">
+  The MCP server is a Python process that sits between your agents and your Django REST API.
+  Every tool below is a function that calls one of your existing API endpoints via HTTP,
+  using a platform-admin JWT token.
+</p>
+
+<div class="tab-group">
+  <div class="tab-nav">
+    <button class="tnav-btn active" onclick="switchMcp('accounts')">Accounts &amp; Auth</button>
+    <button class="tnav-btn" onclick="switchMcp('members')">Members</button>
+    <button class="tnav-btn" onclick="switchMcp('treasury')">Treasury</button>
+    <button class="tnav-btn" onclick="switchMcp('departments')">Departments</button>
+    <button class="tnav-btn" onclick="switchMcp('notifications')">Notifications</button>
+    <button class="tnav-btn" onclick="switchMcp('secretariat')">Secretariat</button>
+    <button class="tnav-btn" onclick="switchMcp('agents')">Agent Infra</button>
+  </div>
+
+  <!-- ACCOUNTS -->
+  <div id="mcp-accounts" class="tnav-panel active">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">get_all_churches()</td><td><span class="tool-method m-get">GET</span></td><td>/api/auth/churches/</td><td class="tool-agent">Orchestrator, Watchdog</td><td class="tool-desc">All church tenants with subscription status</td></tr>
+        <tr><td class="tool-name">get_expiring_subscriptions(days)</td><td><span class="tool-method m-get">GET</span></td><td>/api/auth/churches/?expires_in=7</td><td class="tool-agent">Watchdog</td><td class="tool-desc">Churches expiring within N days</td></tr>
+        <tr><td class="tool-name">get_church_detail(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/auth/churches/{id}/</td><td class="tool-agent">All agents</td><td class="tool-desc">Full church profile + plan + billing</td></tr>
+        <tr><td class="tool-name">disable_church_access(church_id)</td><td><span class="tool-method m-put">PUT</span></td><td>/api/auth/churches/{id}/platform-access/</td><td class="tool-agent">Watchdog</td><td class="tool-desc">Suspend expired church</td></tr>
+        <tr><td class="tool-name">reinstate_church_access(church_id)</td><td><span class="tool-method m-put">PUT</span></td><td>/api/auth/churches/{id}/platform-access/</td><td class="tool-agent">Watchdog</td><td class="tool-desc">Re-enable after payment</td></tr>
+        <tr><td class="tool-name">get_locked_accounts(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/auth/users/?is_locked=true</td><td class="tool-agent">Security</td><td class="tool-desc">Users locked after failed logins</td></tr>
+        <tr><td class="tool-name">get_failed_payments()</td><td><span class="tool-method m-get">GET</span></td><td>/api/payments/?status=failed</td><td class="tool-agent">Watchdog</td><td class="tool-desc">All failed Paystack transactions</td></tr>
+        <tr><td class="tool-name">get_audit_logs(church_id, action, range)</td><td><span class="tool-method m-get">GET</span></td><td>/api/activity/</td><td class="tool-agent">Security</td><td class="tool-desc">Full audit log filtered by action type</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- MEMBERS -->
+  <div id="mcp-members" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">get_members(church_id, filters)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/</td><td class="tool-agent">MemberCare, Orchestrator</td><td class="tool-desc">Paginated member list with filters</td></tr>
+        <tr><td class="tool-name">get_member_profile(member_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/{id}/</td><td class="tool-agent">MemberCare, Secretariat</td><td class="tool-desc">Full member profile</td></tr>
+        <tr><td class="tool-name">get_members_with_birthdays(date)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/?birthday=today</td><td class="tool-agent">MemberCare</td><td class="tool-desc">Members with birthdays on a given date</td></tr>
+        <tr><td class="tool-name">get_inactive_members(days)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/?inactive_days=30</td><td class="tool-agent">MemberCare</td><td class="tool-desc">Members with no activity for N days</td></tr>
+        <tr><td class="tool-name">get_new_members(date_range)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/?joined_after=date</td><td class="tool-agent">MemberCare, Orchestrator</td><td class="tool-desc">Recently joined members</td></tr>
+        <tr><td class="tool-name">get_visitors(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/members/visitors/</td><td class="tool-agent">MemberCare</td><td class="tool-desc">All visitors not yet converted</td></tr>
+        <tr><td class="tool-name">convert_visitor_to_member(visitor_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/members/visitors/convert-to-member/</td><td class="tool-agent">MemberCare</td><td class="tool-desc">Convert visitor record to full member</td></tr>
+        <tr><td class="tool-name">get_member_stats(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/analytics/</td><td class="tool-agent">Orchestrator, MemberCare</td><td class="tool-desc">Membership aggregate stats</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- TREASURY -->
+  <div id="mcp-treasury" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">get_treasury_stats(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/statistics/</td><td class="tool-agent">Treasury, Orchestrator</td><td class="tool-desc">KPI dashboard — income, expenses, balance</td></tr>
+        <tr><td class="tool-name">get_income_transactions(church_id, range)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/income-transactions/</td><td class="tool-agent">Treasury</td><td class="tool-desc">Income records filtered by date</td></tr>
+        <tr><td class="tool-name">get_expense_transactions(church_id, range)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/expense-transactions/</td><td class="tool-agent">Treasury</td><td class="tool-desc">Expense records filtered by date</td></tr>
+        <tr><td class="tool-name">get_stalled_expense_requests(days)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/expense-requests/?stalled=true</td><td class="tool-agent">Treasury</td><td class="tool-desc">Expense requests stuck in approval</td></tr>
+        <tr><td class="tool-name">get_assets(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/assets/</td><td class="tool-agent">Treasury</td><td class="tool-desc">Church asset inventory</td></tr>
+        <tr><td class="tool-name">get_expense_requests(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/treasury/expense-requests/</td><td class="tool-agent">Treasury, Dept</td><td class="tool-desc">All expense requests with status</td></tr>
+        <tr><td class="tool-name">approve_expense_request(req_id, level)</td><td><span class="tool-method m-post">POST</span></td><td>/api/treasury/expense-requests/{id}/approve-treasurer/</td><td class="tool-agent">Treasury</td><td class="tool-desc">Approve at specified level</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- DEPARTMENTS -->
+  <div id="mcp-departments" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">get_departments(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/departments/</td><td class="tool-agent">Dept, Orchestrator</td><td class="tool-desc">All departments for a church</td></tr>
+        <tr><td class="tool-name">get_programs(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/programs/</td><td class="tool-agent">Dept</td><td class="tool-desc">All programs with approval status</td></tr>
+        <tr><td class="tool-name">get_stalled_programs(days)</td><td><span class="tool-method m-get">GET</span></td><td>/api/programs/?stalled=true</td><td class="tool-agent">Dept</td><td class="tool-desc">Programs stuck in a workflow step</td></tr>
+        <tr><td class="tool-name">get_program_details(program_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/programs/{id}/</td><td class="tool-agent">Dept</td><td class="tool-desc">Full program including budget items</td></tr>
+        <tr><td class="tool-name">get_upcoming_activities(church_id, days)</td><td><span class="tool-method m-get">GET</span></td><td>/api/departments/{id}/activities/</td><td class="tool-agent">Dept</td><td class="tool-desc">Activities happening within N days</td></tr>
+        <tr><td class="tool-name">get_announcements(church_id, status)</td><td><span class="tool-method m-get">GET</span></td><td>/api/announcements/</td><td class="tool-agent">Announcement</td><td class="tool-desc">Announcements filtered by status</td></tr>
+        <tr><td class="tool-name">publish_announcement(ann_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/announcements/{id}/</td><td class="tool-agent">Announcement</td><td class="tool-desc">Change status to PUBLISHED</td></tr>
+        <tr><td class="tool-name">get_announcement_stats(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/announcements/stats/summary/</td><td class="tool-agent">Announcement</td><td class="tool-desc">Reach and engagement analytics</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- NOTIFICATIONS -->
+  <div id="mcp-notifications" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">send_email(to, subject, body, church_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/notifications/send-email/</td><td class="tool-agent">All agents</td><td class="tool-desc">Send email to one or more recipients</td></tr>
+        <tr><td class="tool-name">send_sms(to, message, church_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/notifications/send-sms/</td><td class="tool-agent">All agents</td><td class="tool-desc">Send SMS via Twilio/mNotify</td></tr>
+        <tr><td class="tool-name">send_bulk_notification(church_id, target, msg)</td><td><span class="tool-method m-post">POST</span></td><td>/api/notifications/send-bulk/</td><td class="tool-agent">MemberCare, Announcement</td><td class="tool-desc">Blast to all members or a department</td></tr>
+        <tr><td class="tool-name">get_notification_templates(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/notifications/templates/</td><td class="tool-agent">All agents</td><td class="tool-desc">Retrieve reusable message templates</td></tr>
+        <tr><td class="tool-name">create_notification_template(data)</td><td><span class="tool-method m-post">POST</span></td><td>/api/notifications/templates/</td><td class="tool-agent">Orchestrator</td><td class="tool-desc">Create new template for an agent</td></tr>
+        <tr><td class="tool-name">send_in_app_notification(user_id, msg)</td><td><span class="tool-method m-post">POST</span></td><td>/api/notifications/</td><td class="tool-agent">Security, Watchdog</td><td class="tool-desc">In-app notification for dashboard</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- SECRETARIAT -->
+  <div id="mcp-secretariat" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">generate_transfer_letter(member_id, dest)</td><td><span class="tool-method m-post">POST</span></td><td>/api/secretariat/transfer-letters/</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Generate and store PDF transfer letter</td></tr>
+        <tr><td class="tool-name">generate_membership_certificate(member_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/secretariat/document-requests/</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Generate membership certificate PDF</td></tr>
+        <tr><td class="tool-name">log_meeting_minutes(data)</td><td><span class="tool-method m-post">POST</span></td><td>/api/secretariat/minutes/</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Record board meeting minutes</td></tr>
+        <tr><td class="tool-name">get_meeting_minutes(church_id, range)</td><td><span class="tool-method m-get">GET</span></td><td>/api/secretariat/minutes/</td><td class="tool-agent">Secretariat, Orchestrator</td><td class="tool-desc">Retrieve historical meeting records</td></tr>
+        <tr><td class="tool-name">log_baptism_record(member_id, data)</td><td><span class="tool-method m-post">POST</span></td><td>/api/secretariat/baptism/</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Record sacrament with certificate</td></tr>
+        <tr><td class="tool-name">get_pending_document_requests(church_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/secretariat/document-requests/?status=PENDING</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Outstanding doc requests</td></tr>
+        <tr><td class="tool-name">send_document_by_email(member_id, doc_id)</td><td><span class="tool-method m-post">POST</span></td><td>/api/secretariat/document-requests/{id}/send/</td><td class="tool-agent">Secretariat</td><td class="tool-desc">Email generated PDF to member</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <!-- AGENT INFRA -->
+  <div id="mcp-agents" class="tnav-panel">
+    <table class="mcp-table">
+      <thead><tr><th>Tool Name</th><th>Method</th><th>Django Endpoint</th><th>Used By</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr><td class="tool-name">log_agent_action(data)</td><td><span class="tool-method m-post">POST</span></td><td>/api/agents/logs/</td><td class="tool-agent">All agents</td><td class="tool-desc">Record every agent action for audit</td></tr>
+        <tr><td class="tool-name">create_agent_task(data)</td><td><span class="tool-method m-post">POST</span></td><td>/api/agents/tasks/</td><td class="tool-agent">Orchestrator</td><td class="tool-desc">Create a tracked task for an agent</td></tr>
+        <tr><td class="tool-name">update_agent_task(task_id, status)</td><td><span class="tool-method m-put">PUT</span></td><td>/api/agents/tasks/{id}/</td><td class="tool-agent">All agents</td><td class="tool-desc">Mark task as running/done/failed</td></tr>
+        <tr><td class="tool-name">get_agent_memory(session_id)</td><td><span class="tool-method m-get">GET</span></td><td>/api/agents/memory/?session={id}</td><td class="tool-agent">Orchestrator</td><td class="tool-desc">Retrieve conversation history</td></tr>
+        <tr><td class="tool-name">save_agent_memory(session_id, role, msg)</td><td><span class="tool-method m-post">POST</span></td><td>/api/agents/memory/</td><td class="tool-agent">Orchestrator</td><td class="tool-desc">Persist conversation turn</td></tr>
+        <tr><td class="tool-name">check_alert_sent(church_id, alert_type)</td><td><span class="tool-method m-get">GET</span></td><td>/api/agents/alerts/?church={id}&type={t}</td><td class="tool-agent">Watchdog</td><td class="tool-desc">Prevent duplicate alert sending</td></tr>
+        <tr><td class="tool-name">generate_report(church_id, type, format)</td><td><span class="tool-method m-post">POST</span></td><td>/api/reports/</td><td class="tool-agent">Treasury, Orchestrator</td><td class="tool-desc">Generate PDF/XLSX report</td></tr>
+      </tbody>
+    </table>
+  </div>
+</div><!-- end tab-group -->
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 4 — MCP SERVER STRUCTURE
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">4️⃣ MCP Server — Project Structure</div>
+<div class="flow-box">
+<pre>
+church-management-agents/
+├── mcp_server/
+│   ├── server.py              ← MCP server entrypoint (stdio or HTTP)
+│   ├── auth.py                ← Gets + refreshes JWT token from Django
+│   ├── client.py              ← Base HTTP client for all Django API calls
+│   │
+│   ├── tools/
+│   │   ├── accounts.py        ← get_all_churches, disable_church_access, get_audit_logs
+│   │   ├── members.py         ← get_members, get_birthdays, get_inactive_members
+│   │   ├── treasury.py        ← get_treasury_stats, get_stalled_expense_requests
+│   │   ├── departments.py     ← get_stalled_programs, get_upcoming_activities
+│   │   ├── notifications.py   ← send_email, send_sms, send_bulk_notification
+│   │   ├── secretariat.py     ← generate_transfer_letter, log_meeting_minutes
+│   │   └── agent_infra.py     ← log_agent_action, get_agent_memory, check_alert_sent
+│   │
+│   └── config.py              ← DJANGO_BASE_URL, AGENT_JWT_EMAIL, AGENT_JWT_PASSWORD
+│
+├── agents/
+│   ├── orchestrator.py        ← OrchestratorAgent (LangGraph + OpenAI)
+│   ├── subscription_watchdog.py
+│   ├── treasury_health.py
+│   ├── member_care.py
+│   ├── department_program.py
+│   ├── announcement.py
+│   ├── audit_security.py
+│   └── secretariat.py
+│
+├── scheduler/
+│   └── celery_tasks.py        ← Triggers agents on schedule via Celery Beat
+│
+├── memory/
+│   └── redis_memory.py        ← Short-term session memory via Redis
+│
+├── .env                       ← All API keys (never commit)
+├── requirements.txt
+└── README.md
+</pre>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 5 — ENVIRONMENT FILE
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">5️⃣ Complete .env File for the Agents Project</div>
+<div class="env-section">
+<pre>
+<span class="eh"># ══════════════════════════════════════════════
+# CHURCH AGENTS — .env
+# Copy this to your agents project root
+# NEVER commit this file to git
+# ══════════════════════════════════════════════</span>
+
+<span class="ec"># ── Django Backend Connection ───────────────</span>
+<span class="ek">DJANGO_BASE_URL</span>=<span class="ev">http://localhost:8000</span>          <span class="ec"># Your Django backend URL</span>
+<span class="ek">AGENT_JWT_EMAIL</span>=<span class="ev">agent-bot@yourdomain.com</span>      <span class="ec"># Dedicated platform-admin user for agents</span>
+<span class="ek">AGENT_JWT_PASSWORD</span>=<span class="ev">your-strong-bot-password</span>   <span class="ec"># Its password</span>
+
+<span class="ec"># ── OpenAI ─────────────────────────────────</span>
+<span class="ek">OPENAI_API_KEY</span>=<span class="ev">sk-proj-...</span>
+<span class="ek">OPENAI_MODEL</span>=<span class="ev">gpt-4.1</span>
+<span class="ek">OPENAI_ORG_ID</span>=<span class="ev">org-...</span>                         <span class="ec"># Optional</span>
+
+<span class="ec"># ── LangSmith Tracing ──────────────────────</span>
+<span class="ek">LANGCHAIN_TRACING_V2</span>=<span class="ev">true</span>
+<span class="ek">LANGCHAIN_API_KEY</span>=<span class="ev">ls__...</span>
+<span class="ek">LANGCHAIN_PROJECT</span>=<span class="ev">church-agents</span>
+
+<span class="ec"># ── Vector DB (RAG for OrchestratorAgent) ──</span>
+<span class="ek">VECTOR_STORE_TYPE</span>=<span class="ev">chroma</span>                      <span class="ec"># chroma (dev) | pinecone (prod)</span>
+<span class="ek">CHROMA_PERSIST_DIR</span>=<span class="ev">./data/chroma</span>
+<span class="ek">PINECONE_API_KEY</span>=<span class="ev">pcsk_...</span>                     <span class="ec"># Only needed in production</span>
+<span class="ek">PINECONE_INDEX_NAME</span>=<span class="ev">church-knowledge</span>
+
+<span class="ec"># ── Redis (Agent Memory) ───────────────────</span>
+<span class="ek">AGENT_MEMORY_REDIS_URL</span>=<span class="ev">redis://localhost:6379/2</span>
+
+<span class="ec"># ── Celery (Scheduler) ─────────────────────</span>
+<span class="ek">CELERY_BROKER_URL</span>=<span class="ev">redis://localhost:6379/0</span>   <span class="ec"># Shared with Django</span>
+
+<span class="ec"># ── Paystack Webhook Verification ──────────</span>
+<span class="ek">PAYSTACK_WEBHOOK_SECRET</span>=<span class="ev">whsec_...</span>
+
+<span class="ec"># ── Agent Behaviour Settings ───────────────</span>
+<span class="ek">SUBSCRIPTION_ALERT_DAYS</span>=<span class="ev">7,3,1</span>               <span class="ec"># Days before expiry to send alerts</span>
+<span class="ek">EXPENSE_STALL_THRESHOLD_HOURS</span>=<span class="ev">48</span>
+<span class="ek">PROGRAM_STALL_THRESHOLD_HOURS</span>=<span class="ev">72</span>
+<span class="ek">MEMBER_INACTIVE_DAYS</span>=<span class="ev">30</span>
+<span class="ek">VISITOR_FOLLOWUP_DAYS</span>=<span class="ev">3,7</span>
+<span class="ek">ANOMALY_TRANSACTION_THRESHOLD</span>=<span class="ev">5000</span>          <span class="ec"># Amount above which to flag (in GHS)</span>
+<span class="ek">BULK_DELETE_THRESHOLD</span>=<span class="ev">10</span>                    <span class="ec"># Records deleted in 5min to flag</span>
+
+<span class="ec"># ── Support Team Emails ────────────────────</span>
+<span class="ek">SUPPORT_TEAM_EMAIL</span>=<span class="ev">support@yourdomain.com</span>
+<span class="ek">PLATFORM_ADMIN_EMAIL</span>=<span class="ev">admin@yourdomain.com</span>
+
+<span class="ec"># ── Agent Schedule (cron expressions) ──────</span>
+<span class="ek">SCHEDULE_ORCHESTRATOR_BRIEFING</span>=<span class="ev">0 7 * * *</span>    <span class="ec"># Daily 7:00 AM</span>
+<span class="ek">SCHEDULE_SUBSCRIPTION_SCAN</span>=<span class="ev">0 7 * * *</span>        <span class="ec"># Daily 7:00 AM</span>
+<span class="ek">SCHEDULE_TREASURY_HEALTH</span>=<span class="ev">0 8 * * 1</span>          <span class="ec"># Monday 8:00 AM</span>
+<span class="ek">SCHEDULE_MEMBER_BIRTHDAYS</span>=<span class="ev">0 8 * * *</span>         <span class="ec"># Daily 8:00 AM</span>
+<span class="ek">SCHEDULE_MEMBER_INACTIVE</span>=<span class="ev">0 20 * * 0</span>         <span class="ec"># Sunday 8:00 PM</span>
+<span class="ek">SCHEDULE_DEPT_STALL_SCAN</span>=<span class="ev">0 9 * * *</span>          <span class="ec"># Daily 9:00 AM</span>
+<span class="ek">SCHEDULE_ANNOUNCEMENT_CHECK</span>=<span class="ev">0 */6 * * *</span>     <span class="ec"># Every 6 hours</span>
+<span class="ek">SCHEDULE_ANNOUNCEMENT_DIGEST</span>=<span class="ev">0 8 * * 0</span>      <span class="ec"># Sunday 8:00 AM</span>
+<span class="ek">SCHEDULE_AUDIT_SCAN</span>=<span class="ev">0 1 * * *</span>               <span class="ec"># Nightly 1:00 AM</span>
+<span class="ek">SCHEDULE_SECRETARIAT_REMINDER</span>=<span class="ev">0 9 * * 1</span>     <span class="ec"># Monday 9:00 AM</span>
+</pre>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 6 — DEDICATED DJANGO USER FOR AGENTS
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">6️⃣ Create a Dedicated Agent Bot User in Your Django System</div>
+<p style="color:var(--muted);font-size:.85rem;margin-bottom:1rem;">
+  Your MCP server needs a JWT token to call the Django API. Create one dedicated
+  <strong style="color:#fff;">platform-admin</strong> user specifically for the agents — never use a real person's credentials.
+</p>
+<div class="code-block"><span class="cm"># Run this in your Django backend to create the agent bot user</span>
+
+<span class="cm"># Option 1 — Django shell</span>
+python manage.py shell
+<span class="kw">>>></span> <span class="kw">from</span> accounts.models <span class="kw">import</span> User, Church
+<span class="kw">>>></span> user = User.objects.<span class="fn">create_superuser</span>(
+...     email=<span class="st">"agent-bot@yourdomain.com"</span>,
+...     password=<span class="st">"use-a-very-strong-password-here"</span>,
+...     first_name=<span class="st">"Church"</span>,
+...     last_name=<span class="st">"Agent Bot"</span>,
+...     is_platform_admin=<span class="kw">True</span>,    <span class="cm"># needs access to all churches</span>
+...     is_active=<span class="kw">True</span>
+... )
+
+<span class="cm"># Option 2 — Management command (create this once)</span>
+<span class="cm"># management/commands/create_agent_user.py</span>
+<span class="cm"># python manage.py create_agent_user</span>
+</div>
+
+
+<!-- ════════════════════════════════════════════════════
+     SECTION 7 — MASTER CHECKLIST
+═══════════════════════════════════════════════════════ -->
+<div class="section-title">7️⃣ Master Setup Checklist — Do This in Order</div>
+<div class="checklist">
+
+  <div class="check-item">
+    <div class="check-box cb-todo">1</div>
+    <div class="check-text">
+      <h4>Create OpenAI account &amp; get API key</h4>
+      <p>platform.openai.com → API Keys. Set a spend limit. Add OPENAI_API_KEY to .env</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">2</div>
+    <div class="check-text">
+      <h4>Create LangSmith account &amp; project</h4>
+      <p>smith.langchain.com → New project "church-agents". Add LANGCHAIN_API_KEY to .env</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">3</div>
+    <div class="check-text">
+      <h4>Set up ChromaDB locally (for dev)</h4>
+      <p>pip install chromadb. No account needed. Set VECTOR_STORE_TYPE=chroma in .env</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">4</div>
+    <div class="check-text">
+      <h4>Verify Paystack webhook URL is registered</h4>
+      <p>dashboard.paystack.com → Settings → Webhooks → point to /api/webhooks/paystack/. Add PAYSTACK_WEBHOOK_SECRET</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">5</div>
+    <div class="check-text">
+      <h4>Create the "agents" Django app</h4>
+      <p>python manage.py startapp agents → Add models: AgentLog, AgentTask, AgentMemory, AgentAlert, AgentSchedule → migrate</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">6</div>
+    <div class="check-text">
+      <h4>Build out the secretariat Django app</h4>
+      <p>Add models: MeetingMinutes, DocumentRequest, BaptismRecord, MarriageRecord, TransferLetter, CorrespondenceLog → serializers → views → urls → migrate</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">7</div>
+    <div class="check-text">
+      <h4>Add SubscriptionAlert model to accounts app</h4>
+      <p>Prevents duplicate expiry emails being sent. Add to accounts/models.py → migrate</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">8</div>
+    <div class="check-text">
+      <h4>Create the dedicated agent bot Django user</h4>
+      <p>python manage.py shell → create User with is_platform_admin=True and email agent-bot@yourdomain.com</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">9</div>
+    <div class="check-text">
+      <h4>Create the agents GitHub repository</h4>
+      <p>New repo: church-management-agents. Add .env to .gitignore. Set up folder structure from Section 4</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">10</div>
+    <div class="check-text">
+      <h4>Build the MCP server (mcp_server/)</h4>
+      <p>Implement auth.py (JWT login), client.py (HTTP client), then each tool file. Test each tool against your running Django backend</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">11</div>
+    <div class="check-text">
+      <h4>Build SubscriptionWatchdogAgent first (most urgent)</h4>
+      <p>Highest business value. Uses: get_expiring_subscriptions, send_email, check_alert_sent, disable_church_access</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">12</div>
+    <div class="check-text">
+      <h4>Build OrchestratorAgent + Admin Q&amp;A</h4>
+      <p>Set up ChromaDB with embedded church data. Wire up all handoff_to_agent() calls. Test with sample admin questions</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">13</div>
+    <div class="check-text">
+      <h4>Build remaining 6 specialist agents</h4>
+      <p>TreasuryHealth → MemberCare → DepartmentProgram → Announcement → AuditSecurity → Secretariat (after app is built)</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">14</div>
+    <div class="check-text">
+      <h4>Register all agent schedules in Celery Beat</h4>
+      <p>Add all periodic tasks to scheduler/celery_tasks.py. Run celery beat alongside your Django worker</p>
+    </div>
+  </div>
+
+  <div class="check-item">
+    <div class="check-box cb-todo">15</div>
+    <div class="check-text">
+      <h4>Monitor first 7 days in LangSmith</h4>
+      <p>Watch agent traces. Verify emails/SMS arrive. Check no duplicate alerts. Tune anomaly thresholds in .env</p>
+    </div>
+  </div>
+
+</div>
+
+<footer>
+  Church Management SaaS — Agent Setup Guide &nbsp;|&nbsp;
+  Models · MCP Server · Accounts · ENV Variables · Master Checklist
+</footer>
+
+<script>
+  function switchMcp(tab) {
+    document.querySelectorAll('.tnav-panel').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.tnav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('mcp-' + tab).classList.add('active');
+    event.target.classList.add('active');
+  }
+</script>
+</body>
+</html>

@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Church Management SaaS — Agent Architecture</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --surface2: #21253a;
+      --border: #2e3250;
+      --accent: #6c63ff;
+      --accent2: #00d4aa;
+      --accent3: #ff6b6b;
+      --accent4: #ffd166;
+      --accent5: #4ecdc4;
+      --accent6: #a8dadc;
+      --accent7: #f4a261;
+      --accent8: #e76f51;
+      --text: #e2e8f0;
+      --muted: #8892b0;
+      --card-radius: 14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      line-height: 1.6;
+      padding: 2rem;
+    }
+
+    /* ── HEADER ─────────────────────────────────────── */
+    .header {
+      text-align: center;
+      margin-bottom: 3rem;
+      padding: 2.5rem;
+      background: linear-gradient(135deg, #1a1d27 0%, #21253a 100%);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+    .header::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, rgba(108,99,255,0.15) 0%, transparent 70%);
+    }
+    .header h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      position: relative;
+    }
+    .header p {
+      color: var(--muted);
+      margin-top: 0.5rem;
+      font-size: 1rem;
+      position: relative;
+    }
+    .badge-row {
+      display: flex;
+      justify-content: center;
+      gap: 0.75rem;
+      margin-top: 1rem;
+      flex-wrap: wrap;
+      position: relative;
+    }
+    .badge {
+      background: rgba(108,99,255,0.15);
+      border: 1px solid rgba(108,99,255,0.4);
+      color: #a78bfa;
+      font-size: 0.75rem;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+    }
+
+    /* ── SECTION TITLES ─────────────────────────────── */
+    .section-title {
+      font-size: 1.35rem;
+      font-weight: 700;
+      color: #fff;
+      margin: 2.5rem 0 1.2rem;
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+    .section-title::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border);
+    }
+
+    /* ── ARCHITECTURE DIAGRAM ───────────────────────── */
+    .arch-diagram {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 2rem;
+      margin-bottom: 2rem;
+      overflow-x: auto;
+    }
+    .arch-diagram pre {
+      font-family: 'Courier New', monospace;
+      font-size: 0.82rem;
+      color: #a8b2d8;
+      white-space: pre;
+      line-height: 1.5;
+    }
+    .arch-diagram pre .hl { color: var(--accent2); font-weight: bold; }
+
+    /* ── AGENT GRID ─────────────────────────────────── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(520px, 1fr));
+      gap: 1.5rem;
+    }
+
+    .agent-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+    .agent-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    }
+
+    .agent-header {
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .agent-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      flex-shrink: 0;
+    }
+    .agent-header-text h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+    }
+    .agent-header-text .agent-subtitle {
+      font-size: 0.78rem;
+      color: var(--muted);
+      margin-top: 2px;
+    }
+    .agent-number {
+      margin-left: auto;
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 20px;
+      letter-spacing: 0.05em;
+    }
+
+    .agent-body { padding: 1.5rem; }
+
+    /* function description */
+    .func-desc {
+      font-size: 0.85rem;
+      color: var(--muted);
+      margin-bottom: 1.2rem;
+      line-height: 1.7;
+    }
+
+    /* tabs */
+    .tabs { display: flex; gap: 0.4rem; margin-bottom: 1rem; flex-wrap: wrap; }
+    .tab-btn {
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 0.3rem 0.75rem;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: all 0.15s;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+    .tab-btn.active, .tab-btn:hover {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: #fff;
+    }
+    .tab-panel { display: none; }
+    .tab-panel.active { display: block; }
+
+    /* lists */
+    .item-list { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+    .item-list li {
+      font-size: 0.8rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.5rem;
+      color: #c8d0e7;
+    }
+    .item-list li .pill {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      background: rgba(108,99,255,0.12);
+      border: 1px solid rgba(108,99,255,0.3);
+      color: #a78bfa;
+      padding: 0.15rem 0.5rem;
+      border-radius: 5px;
+      white-space: nowrap;
+      flex-shrink: 0;
+    }
+    .item-list li .trigger-pill {
+      background: rgba(0,212,170,0.1);
+      border-color: rgba(0,212,170,0.3);
+      color: var(--accent2);
+    }
+    .item-list li .email-pill {
+      background: rgba(255,209,102,0.1);
+      border-color: rgba(255,209,102,0.3);
+      color: var(--accent4);
+    }
+    .item-list li .doc-pill {
+      background: rgba(231,111,81,0.12);
+      border-color: rgba(231,111,81,0.3);
+      color: var(--accent8);
+    }
+    .item-list li .desc { color: var(--muted); }
+
+    /* ── STACK TABLE ────────────────────────────────── */
+    .stack-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 1rem;
+    }
+    .stack-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.2rem;
+    }
+    .stack-card h4 {
+      font-size: 0.8rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      margin-bottom: 0.6rem;
+    }
+    .stack-card .tech-name {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 0.3rem;
+    }
+    .stack-card .tech-why {
+      font-size: 0.78rem;
+      color: var(--muted);
+    }
+
+    /* ── FULL MAP ───────────────────────────────────── */
+    .full-map {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 2rem;
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1rem;
+    }
+    .map-item {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      padding: 1rem;
+      background: var(--surface2);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+    }
+    .map-num {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: 800;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+    }
+    .map-text h4 { font-size: 0.88rem; font-weight: 700; color: #fff; }
+    .map-text p  { font-size: 0.75rem; color: var(--muted); margin-top: 2px; }
+
+    /* ── API LAYER ─────────────────────────────────── */
+    .api-layer {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--card-radius);
+      padding: 2rem;
+    }
+    .api-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 1rem; margin-top: 1.2rem; }
+    .api-col h4 {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--accent);
+      margin-bottom: 0.6rem;
+    }
+    .api-col ul { list-style: none; display: flex; flex-direction: column; gap: 0.3rem; }
+    .api-col ul li {
+      font-family: 'Courier New', monospace;
+      font-size: 0.72rem;
+      color: #8892b0;
+      padding: 0.2rem 0.4rem;
+      border-radius: 4px;
+      background: rgba(255,255,255,0.03);
+    }
+    .api-col ul li:hover { background: rgba(108,99,255,0.1); color: #c8d0e7; }
+
+    /* ── FOOTER ─────────────────────────────────────── */
+    footer {
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.78rem;
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+    }
+
+    /* ── AGENT ACCENT COLORS ─────────────────────────── */
+    .c1 { color: #6c63ff; background: rgba(108,99,255,0.15); }
+    .c2 { color: #ff6b6b; background: rgba(255,107,107,0.15); }
+    .c3 { color: #00d4aa; background: rgba(0,212,170,0.15); }
+    .c4 { color: #ffd166; background: rgba(255,209,102,0.15); }
+    .c5 { color: #4ecdc4; background: rgba(78,205,196,0.15); }
+    .c6 { color: #a8dadc; background: rgba(168,218,220,0.15); }
+    .c7 { color: #f4a261; background: rgba(244,162,97,0.15); }
+    .c8 { color: #e76f51; background: rgba(231,111,81,0.15); }
+
+    .border-c1 { border-top: 3px solid #6c63ff; }
+    .border-c2 { border-top: 3px solid #ff6b6b; }
+    .border-c3 { border-top: 3px solid #00d4aa; }
+    .border-c4 { border-top: 3px solid #ffd166; }
+    .border-c5 { border-top: 3px solid #4ecdc4; }
+    .border-c6 { border-top: 3px solid #a8dadc; }
+    .border-c7 { border-top: 3px solid #f4a261; }
+    .border-c8 { border-top: 3px solid #e76f51; }
+
+    .num-c1 { background: rgba(108,99,255,0.2); color: #6c63ff; border: 1px solid rgba(108,99,255,0.4); }
+    .num-c2 { background: rgba(255,107,107,0.2); color: #ff6b6b; border: 1px solid rgba(255,107,107,0.4); }
+    .num-c3 { background: rgba(0,212,170,0.2);   color: #00d4aa; border: 1px solid rgba(0,212,170,0.4); }
+    .num-c4 { background: rgba(255,209,102,0.2); color: #ffd166; border: 1px solid rgba(255,209,102,0.4); }
+    .num-c5 { background: rgba(78,205,196,0.2);  color: #4ecdc4; border: 1px solid rgba(78,205,196,0.4); }
+    .num-c6 { background: rgba(168,218,220,0.2); color: #a8dadc; border: 1px solid rgba(168,218,220,0.4); }
+    .num-c7 { background: rgba(244,162,97,0.2);  color: #f4a261; border: 1px solid rgba(244,162,97,0.4); }
+    .num-c8 { background: rgba(231,111,81,0.2);  color: #e76f51; border: 1px solid rgba(231,111,81,0.4); }
+
+    @media (max-width: 600px) {
+      body { padding: 1rem; }
+      .agent-grid { grid-template-columns: 1fr; }
+      .header h1 { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════════════════════════
+     HEADER
+═══════════════════════════════════════════════════════════════ -->
+<div class="header">
+  <h1>Church Management SaaS</h1>
+  <p>Multi-Agent Support System — Architecture Overview</p>
+  <div class="badge-row">
+    <span class="badge">8 AGENTS</span>
+    <span class="badge">Django 5.2 Backend</span>
+    <span class="badge">OpenAI Agents SDK</span>
+    <span class="badge">LangGraph</span>
+    <span class="badge">CrewAI</span>
+    <span class="badge">MCP Server</span>
+    <span class="badge">Celery Beat</span>
+    <span class="badge">Multi-Tenant</span>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     ARCHITECTURE DIAGRAM
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">🏗️ System Architecture Diagram</div>
+<div class="arch-diagram">
+<pre>
+                ┌──────────────────────────────────────────────────────────┐
+                │               ADMIN / SUPPORT TEAM                       │
+                │          (asks questions · receives alerts)               │
+                └────────────────────────┬─────────────────────────────────┘
+                                         │
+                ┌────────────────────────▼─────────────────────────────────┐
+                │                 ORCHESTRATOR AGENT  [1]                   │
+                │        Triage · Route · Admin Q&A · Daily Briefing        │
+                └──┬──────────┬──────────┬──────────┬──────────┬───────────┘
+                   │          │          │          │          │
+        ┌──────────▼──┐  ┌───▼──────┐  ┌▼────────┐ │  ┌───────▼────────┐
+        │SUBSCRIPTION │  │TREASURY  │  │ MEMBER  │ │  │  DEPARTMENT &  │
+        │ WATCHDOG[2] │  │HEALTH [3]│  │CARE [4] │ │  │  PROGRAM   [5] │
+        └─────────────┘  └──────────┘  └─────────┘ │  └────────────────┘
+                                                    │
+                          ┌─────────────────────────┼──────────────────────┐
+                          │                         │                      │
+                    ┌─────▼──────┐         ┌────────▼────┐      ┌──────────▼──────┐
+                    │ANNOUNCEMENT│         │  AUDIT &    │      │  SECRETARIAT    │
+                    │  AGENT [6] │         │ SECURITY [7]│      │    AGENT    [8] │
+                    └────────────┘         └─────────────┘      └─────────────────┘
+
+                ╔═══════════════════════════════════════════════════════════╗
+                ║                  SHARED TOOL LAYER                        ║
+                ║              MCP Server  ←→  Django REST API              ║
+                ║  send_email · send_sms · query_db · fetch_members         ║
+                ║  get_treasury · get_audit_logs · generate_pdf · ...       ║
+                ╚═══════════════════════════════════════════════════════════╝
+
+                ╔═══════════════════════════════════════════════════════════╗
+                ║                   DATA LAYER                               ║
+                ║    PostgreSQL  ·  Redis Cache  ·  Cloudinary Storage      ║
+                ║    Celery Beat (scheduled triggers)  ·  Paystack Webhooks ║
+                ╚═══════════════════════════════════════════════════════════╝
+</pre>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     AGENT CARDS
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">🤖 Agent Profiles — Functions, Tools & Triggers</div>
+<div class="agent-grid">
+
+  <!-- ─── AGENT 1 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c1">
+    <div class="agent-header">
+      <div class="agent-icon c1">🧠</div>
+      <div class="agent-header-text">
+        <h3>OrchestratorAgent</h3>
+        <div class="agent-subtitle">Master Router &amp; Admin Q&amp;A</div>
+      </div>
+      <span class="agent-number num-c1">AGENT 1</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        First point of contact for all admin interactions. Routes incoming tasks to the
+        correct specialist agent, synthesizes multi-agent responses, answers admin
+        questions using RAG over live church data, and delivers a morning daily briefing
+        of everything that needs attention.
+      </p>
+      <div class="tabs" id="tabs-1">
+        <button class="tab-btn active" onclick="switchTab(1,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(1,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(1,'examples')">Example Questions</button>
+      </div>
+      <div id="1-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">handoff_to_agent(agent_name, task)</span><span class="desc">Delegates task to specialist agent</span></li>
+          <li><span class="pill">query_knowledge_base(question)</span><span class="desc">RAG over church data for Q&amp;A</span></li>
+          <li><span class="pill">get_system_status()</span><span class="desc">Overall snapshot across all agents</span></li>
+          <li><span class="pill">list_pending_tasks()</span><span class="desc">What needs attention right now</span></li>
+          <li><span class="pill">generate_daily_briefing(church_id)</span><span class="desc">Morning summary report for admin</span></li>
+          <li><span class="pill">search_members(query)</span><span class="desc">Quick member lookup by name/ID</span></li>
+          <li><span class="pill">get_church_overview(church_id)</span><span class="desc">Full church stats summary</span></li>
+        </ul>
+      </div>
+      <div id="1-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every morning at 7:00 AM — daily briefing delivered to platform admin</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">Admin types any question in the chat interface</span></li>
+          <li><span class="pill trigger-pill">ESCALATION</span><span class="desc">Any agent escalates an urgent issue to Orchestrator</span></li>
+          <li><span class="pill trigger-pill">WEBHOOK</span><span class="desc">Paystack payment event received — route to SubscriptionWatchdog</span></li>
+        </ul>
+      </div>
+      <div id="1-examples" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"How many members joined last month?"</span></li>
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"Which churches are about to expire?"</span></li>
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"What is the total income for March?"</span></li>
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"Is there anything urgent I need to handle today?"</span></li>
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"Show me all churches on the TRIAL plan"</span></li>
+          <li><span class="pill email-pill">Q&amp;A</span><span class="desc">"Send birthday greetings to all members today"</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 2 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c2">
+    <div class="agent-header">
+      <div class="agent-icon c2">🔔</div>
+      <div class="agent-header-text">
+        <h3>SubscriptionWatchdogAgent</h3>
+        <div class="agent-subtitle">Account Expiry &amp; Payment Guardian</div>
+      </div>
+      <span class="agent-number num-c2">AGENT 2</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Monitors all church subscription statuses across every tenant. Detects trial
+        expirations, payment failures, and lapsed subscriptions. Sends automated
+        tiered reminder emails and SMS. Disables church access post-expiry. Generates
+        daily subscription health reports for the platform admin.
+      </p>
+      <div class="tabs" id="tabs-2">
+        <button class="tab-btn active" onclick="switchTab(2,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(2,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(2,'emails')">Emails Sent</button>
+      </div>
+      <div id="2-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_expiring_subscriptions(days_ahead)</span><span class="desc">Query churches by expiry date</span></li>
+          <li><span class="pill">get_failed_payments()</span><span class="desc">Pull Paystack failed transactions</span></li>
+          <li><span class="pill">send_renewal_reminder_email(church_id, days_left)</span><span class="desc">Templated expiry warning</span></li>
+          <li><span class="pill">send_sms_alert(church_id, message)</span><span class="desc">Twilio/mNotify SMS to church admin</span></li>
+          <li><span class="pill">disable_church_access(church_id)</span><span class="desc">Auto-lock expired church</span></li>
+          <li><span class="pill">reinstate_church_access(church_id)</span><span class="desc">Re-enable after payment confirmed</span></li>
+          <li><span class="pill">generate_subscription_report()</span><span class="desc">Full status across all tenants</span></li>
+          <li><span class="pill">notify_support_team(alert)</span><span class="desc">Escalate critical issues to support</span></li>
+          <li><span class="pill">get_payment_history(church_id)</span><span class="desc">Full Paystack payment log</span></li>
+        </ul>
+      </div>
+      <div id="2-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every morning at 7:00 AM — full expiry scan</span></li>
+          <li><span class="pill trigger-pill">WEBHOOK</span><span class="desc">Paystack fires on payment failure → immediate alert</span></li>
+          <li><span class="pill trigger-pill">WEBHOOK</span><span class="desc">Paystack payment success → auto-reinstate access</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Show me all churches expiring this week"</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Trial plan created → start 7d countdown</span></li>
+        </ul>
+      </div>
+      <div id="2-emails" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">D-7</span><span class="desc">"Your trial expires in 7 days — upgrade now"</span></li>
+          <li><span class="pill email-pill">D-3</span><span class="desc">"Action needed: your plan expires in 3 days"</span></li>
+          <li><span class="pill email-pill">D-1</span><span class="desc">"Last chance — access expires tomorrow"</span></li>
+          <li><span class="pill email-pill">D-0</span><span class="desc">"Your account has been suspended"</span></li>
+          <li><span class="pill email-pill">FAIL</span><span class="desc">"Payment failed — please update your billing info"</span></li>
+          <li><span class="pill email-pill">OK</span><span class="desc">"Payment confirmed — your subscription is active"</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 3 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c3">
+    <div class="agent-header">
+      <div class="agent-icon c3">💰</div>
+      <div class="agent-header-text">
+        <h3>TreasuryHealthAgent</h3>
+        <div class="agent-subtitle">Financial System Monitor &amp; Analyst</div>
+      </div>
+      <span class="agent-number num-c3">AGENT 3</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Monitors treasury activity across all church tenants. Detects anomalies like
+        unusually large transactions and budget overruns. Alerts treasurers on stalled
+        expense approvals. Generates financial summaries and answers finance questions
+        from the admin on demand.
+      </p>
+      <div class="tabs" id="tabs-3">
+        <button class="tab-btn active" onclick="switchTab(3,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(3,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(3,'alerts')">Alerts Sent</button>
+      </div>
+      <div id="3-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_income_summary(church_id, date_range)</span><span class="desc">Income totals by category</span></li>
+          <li><span class="pill">get_expense_summary(church_id, date_range)</span><span class="desc">Expense breakdown per department</span></li>
+          <li><span class="pill">get_stalled_expense_requests(days_stalled)</span><span class="desc">Overdue approval requests</span></li>
+          <li><span class="pill">detect_anomalies(church_id)</span><span class="desc">Flag unusual/large transactions</span></li>
+          <li><span class="pill">get_budget_vs_actual(church_id, dept_id)</span><span class="desc">Budget utilization per department</span></li>
+          <li><span class="pill">send_treasurer_alert(church_id, message)</span><span class="desc">Email/SMS to church treasurer</span></li>
+          <li><span class="pill">generate_financial_report(church_id, format)</span><span class="desc">PDF/XLSX export</span></li>
+          <li><span class="pill">get_asset_inventory(church_id)</span><span class="desc">Full church asset list</span></li>
+          <li><span class="pill">get_treasury_statistics(church_id)</span><span class="desc">KPI dashboard data</span></li>
+        </ul>
+      </div>
+      <div id="3-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every Monday at 8:00 AM — weekly financial health check</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Expense request sits in approval stage > 48 hours</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Transaction recorded above anomaly threshold</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Monthly — budget vs. actual report for all departments</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"What is the financial health of Church X?"</span></li>
+        </ul>
+      </div>
+      <div id="3-alerts" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">STALL</span><span class="desc">Expense request pending > 48h → nudge to approver</span></li>
+          <li><span class="pill email-pill">BUDGET</span><span class="desc">Department at 80% budget utilization → warn dept head</span></li>
+          <li><span class="pill email-pill">ANOMALY</span><span class="desc">Large transaction above threshold → alert treasurer + platform admin</span></li>
+          <li><span class="pill email-pill">INACTIVE</span><span class="desc">No income recorded in 2 weeks → flag church as inactive</span></li>
+          <li><span class="pill email-pill">ASSET</span><span class="desc">Asset depreciation review due → reminder to treasury</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 4 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c4">
+    <div class="agent-header">
+      <div class="agent-icon c4">👥</div>
+      <div class="agent-header-text">
+        <h3>MemberCareAgent</h3>
+        <div class="agent-subtitle">Member Engagement &amp; Lifecycle Manager</div>
+      </div>
+      <span class="agent-number num-c4">AGENT 4</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Manages the entire member lifecycle — from visitor follow-up through active
+        engagement. Sends personalized birthday greetings, welcome emails for new
+        members, flags inactive members, and follows up with unconverted visitors.
+        Monitors membership status changes and suggests next steps.
+      </p>
+      <div class="tabs" id="tabs-4">
+        <button class="tab-btn active" onclick="switchTab(4,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(4,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(4,'emails')">Emails Sent</button>
+      </div>
+      <div id="4-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_members_with_birthdays(date)</span><span class="desc">Birthday lookup for today/this week</span></li>
+          <li><span class="pill">get_unconverted_visitors(days_since_visit)</span><span class="desc">Visitor follow-up list</span></li>
+          <li><span class="pill">get_inactive_members(days_inactive)</span><span class="desc">Lapsed/disengaged members</span></li>
+          <li><span class="pill">get_new_members(date_range)</span><span class="desc">Recently joined members</span></li>
+          <li><span class="pill">send_birthday_email(member_id)</span><span class="desc">Personalized birthday greeting</span></li>
+          <li><span class="pill">send_visitor_followup(visitor_id)</span><span class="desc">Follow-up outreach template</span></li>
+          <li><span class="pill">send_welcome_email(member_id)</span><span class="desc">New member onboarding email</span></li>
+          <li><span class="pill">convert_visitor_to_member(visitor_id, data)</span><span class="desc">API call to convert record</span></li>
+          <li><span class="pill">get_member_profile(member_id)</span><span class="desc">Full member details</span></li>
+          <li><span class="pill">query_member_stats(church_id)</span><span class="desc">Aggregate membership statistics</span></li>
+        </ul>
+      </div>
+      <div id="4-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Daily at 8:00 AM — birthday and visitor follow-up scan</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every Sunday evening — inactive member scan (> 30 days)</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">New member created → send welcome email immediately</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Member status changes to TRANSFER → notify agent</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Send a message to all inactive members"</span></li>
+        </ul>
+      </div>
+      <div id="4-emails" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">BDAY</span><span class="desc">"Happy Birthday [Name]! We celebrate you today"</span></li>
+          <li><span class="pill email-pill">D+3</span><span class="desc">Visitor: "Great to meet you — here's what we offer"</span></li>
+          <li><span class="pill email-pill">D+7</span><span class="desc">Visitor: "We'd love to have you join our family"</span></li>
+          <li><span class="pill email-pill">NEW</span><span class="desc">"Welcome to [Church Name]! Here's how to get started"</span></li>
+          <li><span class="pill email-pill">D+30</span><span class="desc">Inactive: "We miss you! Come back and connect with us"</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 5 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c5">
+    <div class="agent-header">
+      <div class="agent-icon c5">🏛️</div>
+      <div class="agent-header-text">
+        <h3>DepartmentProgramAgent</h3>
+        <div class="agent-subtitle">Department Operations &amp; Workflow Monitor</div>
+      </div>
+      <span class="agent-number num-c5">AGENT 5</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Monitors program approval workflows for stalled steps and reminds department
+        heads of pending actions. Tracks department activity schedules and sends
+        reminders. Monitors budget allocation vs. spending per department. Answers
+        questions about department structure and program status.
+      </p>
+      <div class="tabs" id="tabs-5">
+        <button class="tab-btn active" onclick="switchTab(5,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(5,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(5,'alerts')">Alerts Sent</button>
+      </div>
+      <div id="5-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_stalled_programs(days_stalled)</span><span class="desc">Programs stuck in an approval step</span></li>
+          <li><span class="pill">get_upcoming_activities(church_id, days_ahead)</span><span class="desc">Upcoming activity reminders</span></li>
+          <li><span class="pill">get_department_budget_status(church_id)</span><span class="desc">Budget utilization per dept</span></li>
+          <li><span class="pill">notify_department_head(dept_id, message)</span><span class="desc">Email/SMS to department head</span></li>
+          <li><span class="pill">get_pending_program_approvals(church_id)</span><span class="desc">All programs awaiting action</span></li>
+          <li><span class="pill">get_department_members(dept_id)</span><span class="desc">Member list for a department</span></li>
+          <li><span class="pill">send_activity_reminder(activity_id)</span><span class="desc">Pre-event reminder to organizer</span></li>
+          <li><span class="pill">get_program_details(program_id)</span><span class="desc">Full program info including budget items</span></li>
+          <li><span class="pill">get_program_approval_history(program_id)</span><span class="desc">Approval trail with timestamps</span></li>
+        </ul>
+      </div>
+      <div id="5-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Daily scan for programs stalled > 72 hours</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">24 hours before any department activity → send reminder</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Program step unsigned > 72h → nudge next approver</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Monthly — department activity report</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Which programs are waiting for approval?"</span></li>
+        </ul>
+      </div>
+      <div id="5-alerts" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">STALL</span><span class="desc">Program approval stalled > 72h → nudge to next approver</span></li>
+          <li><span class="pill email-pill">REMIND</span><span class="desc">Activity tomorrow → reminder to organizer + participants</span></li>
+          <li><span class="pill email-pill">BUDGET</span><span class="desc">Overspend risk detected → warn department head</span></li>
+          <li><span class="pill email-pill">IDLE</span><span class="desc">No department activities in 30 days → flag to admin</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 6 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c6">
+    <div class="agent-header">
+      <div class="agent-icon c6">📢</div>
+      <div class="agent-header-text">
+        <h3>AnnouncementAgent</h3>
+        <div class="agent-subtitle">Communications &amp; Publishing Coordinator</div>
+      </div>
+      <span class="agent-number num-c6">AGENT 6</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Monitors announcements stuck in PENDING_REVIEW. Distributes published
+        announcements to relevant members and departments via email or SMS.
+        Reminds approvers of pending items. Generates weekly announcement digest
+        summaries and provides statistics on reach and engagement.
+      </p>
+      <div class="tabs" id="tabs-6">
+        <button class="tab-btn active" onclick="switchTab(6,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(6,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(6,'emails')">Emails Sent</button>
+      </div>
+      <div id="6-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_pending_announcements(church_id)</span><span class="desc">Announcements awaiting approval</span></li>
+          <li><span class="pill">get_published_announcements(church_id, range)</span><span class="desc">Published announcements list</span></li>
+          <li><span class="pill">approve_and_publish(announcement_id)</span><span class="desc">Approve and publish (if authorized)</span></li>
+          <li><span class="pill">send_announcement_to_members(ann_id, group)</span><span class="desc">Blast email/SMS to target group</span></li>
+          <li><span class="pill">notify_approver(announcement_id)</span><span class="desc">Nudge reviewer with reminder</span></li>
+          <li><span class="pill">generate_weekly_digest(church_id)</span><span class="desc">Weekly summary email</span></li>
+          <li><span class="pill">get_announcement_stats(church_id)</span><span class="desc">Reach and engagement analytics</span></li>
+          <li><span class="pill">get_announcement_categories(church_id)</span><span class="desc">List available categories</span></li>
+        </ul>
+      </div>
+      <div id="6-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every 6 hours — check for pending announcements</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Every Sunday morning — generate weekly digest</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Announcement published → auto-distribute to members</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Announcement in PENDING_REVIEW > 24h → nudge approver</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Send this week's announcements to all members"</span></li>
+        </ul>
+      </div>
+      <div id="6-emails" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">DIGEST</span><span class="desc">Weekly announcement digest to all subscribed members</span></li>
+          <li><span class="pill email-pill">PUBLISH</span><span class="desc">Immediate distribution on announcement publish</span></li>
+          <li><span class="pill email-pill">REMIND</span><span class="desc">Pending review > 24h → nudge to approver</span></li>
+          <li><span class="pill email-pill">URGENT</span><span class="desc">URGENT priority announcement → immediate blast</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 7 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c7">
+    <div class="agent-header">
+      <div class="agent-icon c7">🛡️</div>
+      <div class="agent-header-text">
+        <h3>AuditSecurityAgent</h3>
+        <div class="agent-subtitle">Compliance, Audit &amp; Security Monitor</div>
+      </div>
+      <span class="agent-number num-c7">AGENT 7</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Scans audit logs for suspicious activity including failed logins, bulk deletes,
+        and unauthorized permission changes. Monitors for unusual access patterns.
+        Flags account lockouts. Generates compliance reports. Cross-references with
+        TreasuryHealthAgent to flag suspicious financial activity.
+      </p>
+      <div class="tabs" id="tabs-7">
+        <button class="tab-btn active" onclick="switchTab(7,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(7,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(7,'alerts')">Alerts Sent</button>
+      </div>
+      <div id="7-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_audit_logs(church_id, action_type, range)</span><span class="desc">Full audit history</span></li>
+          <li><span class="pill">get_failed_login_attempts(threshold)</span><span class="desc">Brute force detection</span></li>
+          <li><span class="pill">get_permission_changes(church_id, range)</span><span class="desc">RBAC changes audit</span></li>
+          <li><span class="pill">get_locked_accounts(church_id)</span><span class="desc">Users locked after 5 failed logins</span></li>
+          <li><span class="pill">flag_suspicious_activity(church_id, details)</span><span class="desc">Alert support team</span></li>
+          <li><span class="pill">generate_audit_report(church_id, range)</span><span class="desc">Compliance PDF report</span></li>
+          <li><span class="pill">send_security_alert(admin_email, message)</span><span class="desc">Urgent email to platform admin</span></li>
+          <li><span class="pill">detect_bulk_actions(church_id, threshold)</span><span class="desc">Flag mass deletes/edits</span></li>
+        </ul>
+      </div>
+      <div id="7-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">REAL-TIME</span><span class="desc">Account locked after 5 failed logins → immediate alert</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Nightly at 1:00 AM — full audit log scan</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">10+ records deleted in 5 minutes → flag bulk action</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Unusual access at odd hours → flag suspicious login</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Show all security events for Church X this week"</span></li>
+        </ul>
+      </div>
+      <div id="7-alerts" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill email-pill">LOCKOUT</span><span class="desc">Account locked after 5 failed attempts</span></li>
+          <li><span class="pill email-pill">BULK</span><span class="desc">Bulk delete / mass action flagged</span></li>
+          <li><span class="pill email-pill">PERM</span><span class="desc">Unauthorized permission change detected</span></li>
+          <li><span class="pill email-pill">LOGIN</span><span class="desc">Login from unusual IP / odd hours</span></li>
+          <li><span class="pill email-pill">REPORT</span><span class="desc">Monthly compliance report to platform admin</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- ─── AGENT 8 ─────────────────────────────────────────── -->
+  <div class="agent-card border-c8">
+    <div class="agent-header">
+      <div class="agent-icon c8">📜</div>
+      <div class="agent-header-text">
+        <h3>SecretariatAgent</h3>
+        <div class="agent-subtitle">Official Records, Documents &amp; Correspondence</div>
+      </div>
+      <span class="agent-number num-c8">AGENT 8</span>
+    </div>
+    <div class="agent-body">
+      <p class="func-desc">
+        Manages official church records and formal correspondence. Generates transfer
+        letters, membership certificates, and recommendation letters. Records meeting
+        minutes, baptism records, and marriage records. Reminds secretary of pending
+        document requests. Answers admin questions about official church records.
+        <br/><br/>
+        <strong style="color:#e76f51;">Note:</strong>
+        The <code style="color:#e76f51;">secretariat</code> Django app is currently an empty scaffold.
+        Models (MeetingMinutes, DocumentRequest, BaptismRecord, TransferLetter, CorrespondenceLog)
+        must be built before this agent can be fully operational.
+      </p>
+      <div class="tabs" id="tabs-8">
+        <button class="tab-btn active" onclick="switchTab(8,'tools')">Tools</button>
+        <button class="tab-btn" onclick="switchTab(8,'triggers')">Triggers</button>
+        <button class="tab-btn" onclick="switchTab(8,'docs')">Documents Generated</button>
+      </div>
+      <div id="8-tools" class="tab-panel active">
+        <ul class="item-list">
+          <li><span class="pill">get_member_record(member_id)</span><span class="desc">Full profile for document generation</span></li>
+          <li><span class="pill">generate_transfer_letter(member_id, dest_church)</span><span class="desc">Official PDF transfer letter</span></li>
+          <li><span class="pill">generate_membership_certificate(member_id)</span><span class="desc">Membership certificate PDF</span></li>
+          <li><span class="pill">generate_recommendation_letter(member_id, purpose)</span><span class="desc">Formal recommendation letter</span></li>
+          <li><span class="pill">log_meeting_minutes(type, date, summary, decisions)</span><span class="desc">Record board meeting minutes</span></li>
+          <li><span class="pill">get_meeting_minutes(date_range, meeting_type)</span><span class="desc">Retrieve historical minutes</span></li>
+          <li><span class="pill">log_baptism_record(member_id, date, officiant)</span><span class="desc">Sacrament record</span></li>
+          <li><span class="pill">log_marriage_record(member_ids, date, officiant)</span><span class="desc">Marriage record</span></li>
+          <li><span class="pill">get_pending_document_requests()</span><span class="desc">Outstanding document requests</span></li>
+          <li><span class="pill">send_document_by_email(member_id, doc_type)</span><span class="desc">Deliver document via email</span></li>
+          <li><span class="pill">notify_secretary(message)</span><span class="desc">Escalate to human secretary</span></li>
+        </ul>
+      </div>
+      <div id="8-triggers" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Generate a transfer letter for [Member Name]"</span></li>
+          <li><span class="pill trigger-pill">EVENT</span><span class="desc">Member status → TRANSFER: auto-prompt transfer letter generation</span></li>
+          <li><span class="pill trigger-pill">SCHEDULED</span><span class="desc">Weekly reminder of pending document requests</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Show me the minutes from the last elder meeting"</span></li>
+          <li><span class="pill trigger-pill">ON-DEMAND</span><span class="desc">"Log baptism record for [Member] on [Date]"</span></li>
+        </ul>
+      </div>
+      <div id="8-docs" class="tab-panel">
+        <ul class="item-list">
+          <li><span class="pill doc-pill">TRANSFER</span><span class="desc">Transfer letter — member moving to another church</span></li>
+          <li><span class="pill doc-pill">CERT</span><span class="desc">Membership certificate — proof of membership</span></li>
+          <li><span class="pill doc-pill">RECOM</span><span class="desc">Recommendation letter — employment, school, travel</span></li>
+          <li><span class="pill doc-pill">BAPTISM</span><span class="desc">Baptism certificate — sacrament record</span></li>
+          <li><span class="pill doc-pill">MINUTES</span><span class="desc">Meeting minutes PDF — official board records</span></li>
+          <li><span class="pill doc-pill">REPORT</span><span class="desc">Membership report — for denominational returns</span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+</div><!-- end agent-grid -->
+
+<!-- ═══════════════════════════════════════════════════════════
+     FULL MAP
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">🗺️ Complete Agent Map</div>
+<div class="full-map">
+  <div class="map-item"><div class="map-num num-c1">1</div><div class="map-text"><h4>OrchestratorAgent</h4><p>Admin Q&A · Routing · Daily Briefing</p></div></div>
+  <div class="map-item"><div class="map-num num-c2">2</div><div class="map-text"><h4>SubscriptionWatchdogAgent</h4><p>Expiry · Payments · Billing</p></div></div>
+  <div class="map-item"><div class="map-num num-c3">3</div><div class="map-text"><h4>TreasuryHealthAgent</h4><p>Finance · Expenses · Budgets</p></div></div>
+  <div class="map-item"><div class="map-num num-c4">4</div><div class="map-text"><h4>MemberCareAgent</h4><p>Birthdays · Visitors · Engagement</p></div></div>
+  <div class="map-item"><div class="map-num num-c5">5</div><div class="map-text"><h4>DepartmentProgramAgent</h4><p>Programs · Activities · Approvals</p></div></div>
+  <div class="map-item"><div class="map-num num-c6">6</div><div class="map-text"><h4>AnnouncementAgent</h4><p>Publishing · Digests · Comms</p></div></div>
+  <div class="map-item"><div class="map-num num-c7">7</div><div class="map-text"><h4>AuditSecurityAgent</h4><p>Compliance · Fraud · Lockouts</p></div></div>
+  <div class="map-item"><div class="map-num num-c8">8</div><div class="map-text"><h4>SecretariatAgent</h4><p>Records · Letters · Minutes</p></div></div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     IMPLEMENTATION STACK
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">⚙️ Implementation Stack</div>
+<div class="stack-grid">
+  <div class="stack-card">
+    <h4>Agent Framework</h4>
+    <div class="tech-name">OpenAI Agents SDK</div>
+    <div class="tech-why">Lightweight tools + handoffs between agents. Clean, minimal code.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Stateful Workflows</h4>
+    <div class="tech-name">LangGraph</div>
+    <div class="tech-why">Multi-step approval monitoring and stateful agent workflows with persistence.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Multi-Agent Crews</h4>
+    <div class="tech-name">CrewAI</div>
+    <div class="tech-why">Report generation tasks and coordinated multi-agent output.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Tool Exposure Layer</h4>
+    <div class="tech-name">MCP Server</div>
+    <div class="tech-why">Exposes all 50+ Django REST API endpoints as agent tools cleanly.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Task Scheduling</h4>
+    <div class="tech-name">Celery Beat</div>
+    <div class="tech-why">Already in your Django system. Triggers agents on defined schedules.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Agent Memory</h4>
+    <div class="tech-name">SQLite + Redis</div>
+    <div class="tech-why">SQLite for conversation memory. Redis for ephemeral session state.</div>
+  </div>
+  <div class="stack-card">
+    <h4>Admin Q&A (RAG)</h4>
+    <div class="tech-name">ChromaDB / Pinecone</div>
+    <div class="tech-why">Vector database for semantic search over church data and documents.</div>
+  </div>
+  <div class="stack-card">
+    <h4>LLM Provider</h4>
+    <div class="tech-name">OpenAI GPT-4.1</div>
+    <div class="tech-why">Primary model for all agents. Can swap per agent based on task complexity.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     API / MCP TOOL LAYER
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">🔌 How Agents Connect to Your Django System</div>
+<div class="api-layer">
+  <p style="color:var(--muted);font-size:0.85rem;margin-bottom:0.5rem;">
+    An <strong style="color:#fff;">MCP Server</strong> wraps your existing Django REST API,
+    exposing every endpoint as a callable tool. Agents never touch the database directly —
+    they call tools, which call your API.
+  </p>
+  <div class="api-cols">
+    <div class="api-col">
+      <h4>Accounts &amp; Auth</h4>
+      <ul>
+        <li>GET /api/auth/churches/</li>
+        <li>GET /api/auth/users/</li>
+        <li>GET /api/auth/roles/</li>
+        <li>POST /api/webhooks/paystack/</li>
+        <li>POST /api/payments/initialize/</li>
+      </ul>
+    </div>
+    <div class="api-col">
+      <h4>Members</h4>
+      <ul>
+        <li>GET /api/members/</li>
+        <li>GET /api/members/{id}/</li>
+        <li>GET /api/members/visitors/</li>
+        <li>POST /api/members/visitors/convert/</li>
+      </ul>
+    </div>
+    <div class="api-col">
+      <h4>Treasury</h4>
+      <ul>
+        <li>GET /api/treasury/statistics/</li>
+        <li>GET /api/treasury/income-transactions/</li>
+        <li>GET /api/treasury/expense-requests/</li>
+        <li>GET /api/treasury/assets/</li>
+      </ul>
+    </div>
+    <div class="api-col">
+      <h4>Departments</h4>
+      <ul>
+        <li>GET /api/departments/</li>
+        <li>GET /api/programs/</li>
+        <li>GET /api/departments/{id}/activities/</li>
+        <li>POST /api/programs/{id}/review/</li>
+      </ul>
+    </div>
+    <div class="api-col">
+      <h4>Notifications</h4>
+      <ul>
+        <li>POST /api/notifications/send-email/</li>
+        <li>POST /api/notifications/send-sms/</li>
+        <li>POST /api/notifications/send-bulk/</li>
+        <li>GET /api/notifications/templates/</li>
+      </ul>
+    </div>
+    <div class="api-col">
+      <h4>Reports &amp; Audit</h4>
+      <ul>
+        <li>GET /api/reports/</li>
+        <li>GET /api/analytics/</li>
+        <li>GET /api/activity/</li>
+        <li>GET /api/announcements/stats/</li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     SECRETARIAT MODELS NEEDED
+═══════════════════════════════════════════════════════════════ -->
+<div class="section-title">🔧 Secretariat App — Models Still To Be Built</div>
+<div class="arch-diagram">
+<pre style="color:#8892b0;">
+# secretariat/models.py  — needs to be implemented
+
+class MeetingMinutes(models.Model):
+    church         → ForeignKey(Church)
+    meeting_type   → ELDER_BOARD | CHURCH_BOARD | COMMITTEE | GENERAL
+    date           → DateField
+    attendees      → ManyToManyField(Member)
+    summary        → TextField
+    decisions      → TextField
+    document        → FileField (Cloudinary)
+
+class DocumentRequest(models.Model):
+    church         → ForeignKey(Church)
+    member         → ForeignKey(Member)
+    doc_type       → TRANSFER | CERTIFICATE | RECOMMENDATION | BAPTISM | MARRIAGE
+    status         → PENDING | IN_PROGRESS | COMPLETED
+    requested_by   → ForeignKey(User)
+    generated_at   → DateTimeField
+    document        → FileField (Cloudinary)
+
+class BaptismRecord(models.Model):
+    church         → ForeignKey(Church)
+    member         → ForeignKey(Member)
+    date           → DateField
+    officiant      → CharField
+    location       → CharField
+    certificate    → FileField
+
+class TransferLetter(models.Model):
+    church         → ForeignKey(Church)
+    member         → ForeignKey(Member)
+    destination    → CharField (destination church name)
+    date_issued    → DateField
+    issued_by      → ForeignKey(User)
+    document        → FileField
+
+class CorrespondenceLog(models.Model):
+    church         → ForeignKey(Church)
+    corr_type      → INCOMING | OUTGOING
+    sender         → CharField
+    recipient      → CharField
+    subject        → CharField
+    date           → DateField
+    reference_no   → CharField (unique)
+    document        → FileField
+</pre>
+</div>
+
+<footer>
+  Church Management SaaS — Agent Architecture &nbsp;|&nbsp; 8 Agents &nbsp;|&nbsp;
+  Built on Django 5.2 + OpenAI Agents SDK + LangGraph + CrewAI + MCP
+</footer>
+
+<script>
+  function switchTab(agentNum, tabName) {
+    // Hide all panels for this agent
+    const panels = document.querySelectorAll(`[id^="${agentNum}-"]`);
+    panels.forEach(p => p.classList.remove('active'));
+
+    // Deactivate all tab buttons in this agent's card
+    const card = panels[0]?.closest('.agent-card');
+    if (card) {
+      card.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    }
+
+    // Show target panel
+    const target = document.getElementById(`${agentNum}-${tabName}`);
+    if (target) target.classList.add('active');
+
+    // Activate clicked button
+    event.target.classList.add('active');
+  }
+</script>
+
+</body>
+</html>

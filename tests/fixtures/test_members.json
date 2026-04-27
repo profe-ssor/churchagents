@@ -1,0 +1,20 @@
+[
+  {
+    "id": 101,
+    "first_name": "John",
+    "last_name": "Doe",
+    "email": "john@example.com",
+    "status": "ACTIVE",
+    "last_attendance": "2026-03-01",
+    "church_id": 1
+  },
+  {
+    "id": 102,
+    "first_name": "Jane",
+    "last_name": "Smith",
+    "email": "jane@example.com",
+    "status": "VISITOR",
+    "last_attendance": "2026-04-15",
+    "church_id": 1
+  }
+]
