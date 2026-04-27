@@ -3,7 +3,6 @@ MCP Tools — Announcements
 Endpoints: /api/announcements/
 """
 from mcp_server import client
-from datetime import datetime, timedelta
 
 
 async def get_pending_announcements() -> list:

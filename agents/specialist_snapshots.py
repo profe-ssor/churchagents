@@ -11,7 +11,6 @@ from typing import Any, Callable, Awaitable
 from mcp_server import client
 from mcp_server.tools import accounts, audit_security as audit_snap_tools, departments, treasury
 from mcp_server.tools import secretariat as sec_tools
-from mcp_server.tools import agent_data
 
 logger = logging.getLogger("specialist_snapshots")
 

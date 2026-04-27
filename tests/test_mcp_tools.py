@@ -3,7 +3,6 @@ Tests for MCP tool layer — ensures tools call the right Django endpoints.
 Uses httpx mock to avoid real HTTP calls.
 """
 import pytest
-import httpx
 from unittest.mock import AsyncMock, patch
 
 

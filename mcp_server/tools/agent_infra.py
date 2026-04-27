@@ -2,10 +2,11 @@
 MCP Tools — Write back to Django agent models (AgentLog, AgentAlert, AgentTask).
 These endpoints will exist once you add agents_app to Django (Day 1 Task 2).
 """
+import logging
+
+from guardrails.dry_run import DRY_RUN
 from mcp_server import client
 from mcp_server.credential_hints import DJANGO_AGENT_AUTH_HELP, looks_like_auth_or_scope_error
-from guardrails.dry_run import DRY_RUN
-import logging, time
 
 logger = logging.getLogger("agent_infra")
 

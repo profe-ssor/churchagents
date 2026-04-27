@@ -11,7 +11,6 @@ import logging
 from dotenv import load_dotenv
 from monitoring.langsmith_setup import configure
 from monitoring.alert_thresholds import SUBSCRIPTION_ALERT_DAYS
-from monitoring.token_tracker import record_usage
 from guardrails.rate_limiter import check_rate_limit
 from mcp_server.tools import accounts, notifications
 from mcp_server.tools.agent_infra import log_action, create_alert

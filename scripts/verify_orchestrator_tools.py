@@ -14,11 +14,11 @@ import os
 import sys
 from pathlib import Path
 
+from dotenv import load_dotenv
+
 _ROOT = Path(__file__).resolve().parents[1]
 if str(_ROOT) not in sys.path:
     sys.path.insert(0, str(_ROOT))
-
-from dotenv import load_dotenv
 
 load_dotenv(_ROOT / ".env")
 
@@ -29,7 +29,6 @@ def _tool_args_json() -> dict[str, str]:
         os.getenv("AGENT_VERIFY_CHURCH_ID", "").strip()
         or "00000000-0000-0000-0000-000000000001"
     )
-    cid_esc = cid.replace('"', '\\"')
     return {
         "get_church_directory": "{}",
         "get_expiring_subscriptions": "{}",

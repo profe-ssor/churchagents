@@ -10,7 +10,7 @@ import logging
 from dotenv import load_dotenv
 from monitoring.langsmith_setup import configure
 from guardrails.rate_limiter import check_rate_limit
-from mcp_server.tools import secretariat, notifications
+from mcp_server.tools import secretariat
 from mcp_server.tools.agent_infra import log_action, create_alert
 
 load_dotenv()

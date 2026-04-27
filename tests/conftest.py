@@ -2,7 +2,6 @@
 conftest.py — Shared pytest fixtures for all agent tests.
 """
 import pytest
-import json
 import os
 from unittest.mock import AsyncMock, MagicMock
 

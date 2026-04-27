@@ -115,23 +115,6 @@ async def get_visitors_due_for_followup(church_id: str, days_after_first_visit: 
     return out
 
 
-async def get_visitors_due_for_followup(church_id: str, days_after_first_visit: int) -> list:
-    """
-    Unconverted visitors whose first_visit_date was exactly `days_after_first_visit` calendar days ago
-    (use with VISITOR_FOLLOWUP_DAYS e.g. 3 → D+3 email, 7 → D+7 email without duplicate sends).
-    """
-    visitors = await get_visitors(church_id=church_id)
-    target_day = date.today() - timedelta(days=days_after_first_visit)
-    out = []
-    for v in visitors:
-        if v.get("converted_to_member"):
-            continue
-        vd = _visitor_first_visit_date(v)
-        if vd == target_day:
-            out.append(v)
-    return out
-
-
 async def get_unconverted_visitors(church_id: str, days_since_visit: int = 0) -> list:
     """
     Visitors not yet converted to members.
